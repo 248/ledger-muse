@@ -96,17 +96,89 @@ CI/CD パイプラインと品質ゲートを構築し、以降の開発で自�
 
 - [ ] Terraform プロジェクト初期化
 - [ ] リモートステート設定（Cloud Storage）
-- [ ] 環境分離（`terraform/environments/dev`, `staging`, `prod`）
+- [ ] 環境分離（`terraform/environments/staging`, `prod`）※ローカル開発はGCP不要
 - [ ] 基本モジュール作成:
   - [ ] `modules/cloud-run`
   - [ ] `modules/firestore`
   - [ ] `modules/storage`
+
+#### 6. ローカル開発環境セットアップ
+
+**重要**: ローカル開発ではGCPへのデプロイは行わず、エミュレーターを使用します。
+
+##### Firebase Emulator Suite
+
+- [ ] Firebase CLI インストール: `npm install -g firebase-tools`
+- [ ] Firebase プロジェクト初期化: `firebase init emulators`
+- [ ] エミュレーター設定（`firebase.json`）:
+  ```json
+  {
+    "emulators": {
+      "auth": { "port": 9099 },
+      "firestore": { "port": 8080 },
+      "storage": { "port": 9199 },
+      "pubsub": { "port": 8085 },
+      "ui": { "enabled": true, "port": 4000 }
+    }
+  }
+  ```
+
+##### 環境変数設定
+
+- [ ] フロントエンド（`.env.local`）:
+  ```bash
+  NEXT_PUBLIC_API_URL=http://localhost:8080
+  NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=localhost:8080
+  NEXT_PUBLIC_AUTH_EMULATOR_HOST=localhost:9099
+  NEXTAUTH_URL=http://localhost:3000
+  NEXTAUTH_SECRET=your-development-secret
+  ```
+
+- [ ] バックエンド（`.env`）:
+  ```bash
+  ENV=local
+  FIRESTORE_EMULATOR_HOST=localhost:8080
+  FIREBASE_AUTH_EMULATOR_HOST=localhost:9099
+  STORAGE_EMULATOR_HOST=localhost:9199
+  PUBSUB_EMULATOR_HOST=localhost:8085
+  GCP_PROJECT_ID=demo-project
+  ```
+
+##### Docker Compose（オプション）
+
+- [ ] `docker-compose.yml` 作成（バックエンド＋エミュレーター統合）
+- [ ] 一括起動スクリプト作成: `docker-compose up`
+
+##### Cloud Vision API モック
+
+- [ ] モックOCRサービス実装（ローカル開発用）:
+  ```go
+  func NewOCRService() OCRService {
+      if os.Getenv("ENV") == "local" {
+          return &MockOCRService{}
+      }
+      return &CloudVisionAdapter{}
+  }
+  ```
+
+##### 起動確認
+
+- [ ] `firebase emulators:start` でエミュレーター起動
+- [ ] `cd backend && go run cmd/api/main.go` でバックエンド起動
+- [ ] `cd frontend && npm run dev` でフロントエンド起動
+- [ ] http://localhost:3000 でアクセス確認
+- [ ] http://localhost:4000 でFirestore UIアクセス確認
 
 ### 成功基準
 
 - [ ] CI パイプラインがすべて成功する（Green Build）
 - [ ] `main` ブランチへのマージには品質ゲートが必須
 - [ ] Terraform で基本リソースをデプロイ可能
+- [ ] **ローカル開発環境が正常に動作する**:
+  - [ ] Firebaseエミュレーターが起動する
+  - [ ] Frontend（localhost:3000）にアクセスできる
+  - [ ] Backend（localhost:8080/health）が応答する
+  - [ ] Firestore UI（localhost:4000）でデータ確認できる
 
 ---
 
@@ -114,7 +186,7 @@ CI/CD パイプラインと品質ゲートを構築し、以降の開発で自�
 
 ### 目的
 
-フロントエンドとバックエンドを最小限の機能でデプロイし、エンドツーエンドの接続を確認する。
+フロントエンドとバックエンドを最小限の機能で実装し、**まずローカル環境で動作確認後**、Staging環境へデプロイしてエンドツーエンドの接続を確認する。
 
 ### 実装タスク
 
@@ -126,6 +198,7 @@ CI/CD パイプラインと品質ゲートを構築し、以降の開発で自�
     return <h1>Ledger Muse - Hello World</h1>
   }
   ```
+- [ ] **ローカル環境で動作確認**: `npm run dev` → http://localhost:3000
 - [ ] Firebase App Hosting へデプロイ
 - [ ] Staging環境で動作確認
 
@@ -141,24 +214,28 @@ CI/CD パイプラインと品質ゲートを構築し、以降の開発で自�
     })
   }
   ```
+- [ ] **ローカル環境で動作確認**: `go run cmd/api/main.go` → http://localhost:8080/health
 - [ ] Dockerfile 作成
 - [ ] Cloud Run へデプロイ
 - [ ] Staging環境で動作確認（`curl https://api-staging.example.com/health`）
 
 #### 統合確認
 
-- [ ] Frontend から Backend API を呼び出し:
+- [ ] **ローカル環境**: Frontend（localhost:3000）から Backend（localhost:8080）を呼び出し:
   ```tsx
   // app/page.tsx
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`)
   const data = await res.json()
   ```
-- [ ] CORS 設定確認
+- [ ] **ローカル環境**: CORS 設定確認
+- [ ] **Staging環境**: Frontend（Firebase App Hosting）から Backend（Cloud Run）を呼び出し
+- [ ] **PR Preview環境**: プレビューURLから動作確認
 
 ### 成功基準
 
-- [ ] Frontend が Firebase App Hosting で公開されている
-- [ ] Backend が Cloud Run で公開されている
+- [ ] **ローカル環境でFrontend/Backendが連携できる**
+- [ ] Frontend が Firebase App Hosting（Staging）で公開されている
+- [ ] Backend が Cloud Run（Staging）で公開されている
 - [ ] Frontend から Backend API を呼び出せる
 - [ ] すべてのCI/CDパイプラインが成功している
 

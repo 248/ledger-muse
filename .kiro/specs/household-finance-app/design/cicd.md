@@ -15,15 +15,34 @@
 
 - **デプロイツール**: GitHub Actions
 - **コンテナレジストリ**: Artifact Registry
-- **デプロイ先**: Cloud Run（dev/staging/prod環境）
+- **デプロイ先**: Cloud Run（staging/prod環境のみ）
 
 ## 環境戦略
 
 | 環境 | ブランチ | Frontend | Backend | 用途 |
 |------|---------|----------|---------|------|
-| **Development** | `feature/*` | Firebase App Hosting (プレビュー) | Cloud Run (dev) | 開発者の機能開発・検証 |
+| **Local** | `feature/*` | Next.js dev server (localhost:3000) | Go (localhost:8080) | 日常的な開発・デバッグ（Firebaseエミュレーター使用） |
+| **PR Preview** | PR作成時 | Firebase App Hosting (一時URL) | Cloud Run (staging) | コードレビュー時の動作確認・統合テスト |
 | **Staging** | `develop` | Firebase App Hosting (staging) | Cloud Run (staging) | 統合テスト・受け入れテスト |
 | **Production** | `main` | Firebase App Hosting (production) | Cloud Run (production) | 本番環境 |
+
+### ローカル開発環境
+
+ローカル開発では、GCPへのデプロイは行わず、以下のツールを使用します：
+
+- **Firebase Emulator Suite**: Firestore、Authentication、Cloud Storage、Pub/Subをエミュレート
+- **Next.js Dev Server**: `npm run dev` でHMR（Hot Module Replacement）対応の開発サーバー
+- **Go Backend**: `go run cmd/api/main.go` でローカルAPIサーバー起動
+- **Docker Compose（オプション）**: バックエンドをコンテナ化して実行
+
+### PR Preview 環境
+
+Firebase App Hosting は PR 作成時に自動でプレビュー環境を生成します：
+
+- **自動生成**: PR作成時に一時的なプレビューURLが発行される
+- **バックエンド接続**: Staging環境のCloud Run APIに接続
+- **自動削除**: PRマージまたはクローズ時に自動削除
+- **コスト**: 無料枠内で運用可能（10,000訪問/月まで）
 
 ## GitHub Actions パイプライン
 
@@ -189,6 +208,167 @@ jobs:
             --format 'value(status.url)')
           echo "Service URL: $SERVICE_URL"
 ```
+
+## ローカル開発環境セットアップ
+
+### Firebase Emulator Suite
+
+ローカルでFirebaseサービスをエミュレートします：
+
+```bash
+# Firebase CLI インストール
+npm install -g firebase-tools
+
+# Firebase プロジェクト初期化
+firebase init emulators
+
+# エミュレーター起動
+firebase emulators:start
+```
+
+#### エミュレーター設定（firebase.json）
+
+```json
+{
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "storage": {
+      "port": 9199
+    },
+    "pubsub": {
+      "port": 8085
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    }
+  }
+}
+```
+
+### Docker Compose（オプション）
+
+バックエンドとエミュレーターをまとめて起動：
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      - ENV=local
+      - FIRESTORE_EMULATOR_HOST=firebase-emulator:8080
+      - PUBSUB_EMULATOR_HOST=firebase-emulator:8085
+    depends_on:
+      - firebase-emulator
+
+  firebase-emulator:
+    image: google/cloud-sdk:latest
+    command: gcloud emulators firestore start --host-port=0.0.0.0:8080
+    ports:
+      - "8080:8080"
+      - "8085:8085"
+      - "9099:9099"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8080
+      - NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=firebase-emulator:8080
+    depends_on:
+      - backend
+```
+
+### ローカル開発フロー
+
+1. **バックエンド起動**:
+   ```bash
+   cd backend
+   go run cmd/api/main.go
+   ```
+
+2. **フロントエンド起動**:
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+3. **Firebaseエミュレーター起動**:
+   ```bash
+   firebase emulators:start
+   ```
+
+4. **動作確認**:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8080
+   - Firestore UI: http://localhost:4000
+
+### 環境変数設定
+
+#### フロントエンド（.env.local）
+
+```bash
+# API接続先
+NEXT_PUBLIC_API_URL=http://localhost:8080
+
+# Firebase Emulator
+NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=localhost:8080
+NEXT_PUBLIC_AUTH_EMULATOR_HOST=localhost:9099
+
+# NextAuth.js
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-development-secret
+```
+
+#### バックエンド（.env）
+
+```bash
+# 環境
+ENV=local
+
+# Firebase Emulator
+FIRESTORE_EMULATOR_HOST=localhost:8080
+FIREBASE_AUTH_EMULATOR_HOST=localhost:9099
+STORAGE_EMULATOR_HOST=localhost:9199
+PUBSUB_EMULATOR_HOST=localhost:8085
+
+# GCP プロジェクト（エミュレーター用）
+GCP_PROJECT_ID=demo-project
+```
+
+### Cloud Vision API のローカル対応
+
+Cloud Vision APIはエミュレートできないため、以下のいずれかを選択：
+
+1. **モック実装**（推奨）:
+   ```go
+   type MockOCRService struct{}
+
+   func (m *MockOCRService) ExtractText(imageURL string) (*OCRResult, error) {
+       return &OCRResult{
+           Amount: 1500,
+           Date: time.Now(),
+           Merchant: "テストストア",
+       }, nil
+   }
+   ```
+
+2. **Staging環境のAPIを使用**:
+   ```bash
+   # 本物のCloud Vision APIを使用（APIキーまたはADC認証）
+   export GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
+   ```
 
 ## Firebase App Hosting デプロイ設定
 
@@ -380,9 +560,10 @@ jobs:
 
 | 環境 | Cloud Run インスタンス | メモリ | CPU |
 |------|----------------------|--------|-----|
-| Development | min: 0, max: 2 | 256Mi | 1 |
 | Staging | min: 0, max: 3 | 512Mi | 1 |
 | Production | min: 0, max: 10 | 512Mi | 1 |
+
+**注**: ローカル開発環境はGCPリソースを使用しないため、コスト削減と管理負担軽減を実現します。
 
 ## 参考資料
 

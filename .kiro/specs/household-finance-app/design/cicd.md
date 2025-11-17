@@ -251,68 +251,224 @@ firebase emulators:start
 }
 ```
 
-### Docker Compose（オプション）
+### Docker環境（Colima + Docker Compose）
 
-バックエンドとエミュレーターをまとめて起動：
+**開発環境**: macOS + Homebrew + Colima（Docker Desktop の軽量代替）
+
+#### Colima セットアップ
+
+```bash
+# Homebrew で Colima と Docker ツールをインストール
+brew install colima docker docker-compose
+
+# Colima 起動（リソース設定）
+colima start --cpu 4 --memory 8 --disk 60
+
+# Docker 動作確認
+docker ps
+docker compose version
+```
+
+#### Colima 設定のポイント
+
+| 設定項目 | 推奨値 | 説明 |
+|---------|--------|------|
+| CPU | 4 | Backend（1コンテナ）+ Emulator（1コンテナ）で十分 |
+| Memory | 8GB | Firebaseエミュレーター（2GB）+ Backend（1GB）+ バッファ（5GB） |
+| Disk | 60GB | イメージ、コンテナ、ボリューム用 |
+
+**注**: Frontend はホスト実行のため Colima VM のリソースを消費しません。
+
+```bash
+# リソース変更する場合（停止→削除→再起動）
+colima stop
+colima delete
+colima start --cpu 4 --memory 8 --disk 60
+
+# 状態確認
+colima status
+colima list
+```
+
+#### Docker Compose 設定（Backend + Emulator のみ）
+
+**重要**: Frontend（Next.js）はホストマシンで直接実行します（HMRパフォーマンス最適化のため）
 
 ```yaml
 # docker-compose.yml
 version: '3.8'
 
 services:
+  # Firebase Emulator Suite
+  firebase-emulator:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./firebase.json:/app/firebase.json:ro
+      - ./firestore-data:/app/firestore-data  # データ永続化
+    ports:
+      - "8080:8080"   # Firestore
+      - "8085:8085"   # Pub/Sub
+      - "9099:9099"   # Authentication
+      - "9199:9199"   # Storage
+      - "4000:4000"   # Emulator UI
+    command: |
+      sh -c "npm install -g firebase-tools && firebase emulators:start --project demo-project"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API (Go + Echo)
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
     ports:
       - "8080:8080"
     environment:
       - ENV=local
       - FIRESTORE_EMULATOR_HOST=firebase-emulator:8080
+      - FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099
+      - STORAGE_EMULATOR_HOST=firebase-emulator:9199
       - PUBSUB_EMULATOR_HOST=firebase-emulator:8085
+      - GCP_PROJECT_ID=demo-project
+    volumes:
+      - ./backend:/app:delegated  # ホットリロード用（macOS最適化）
     depends_on:
-      - firebase-emulator
-
-  firebase-emulator:
-    image: google/cloud-sdk:latest
-    command: gcloud emulators firestore start --host-port=0.0.0.0:8080
-    ports:
-      - "8080:8080"
-      - "8085:8085"
-      - "9099:9099"
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://backend:8080
-      - NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=firebase-emulator:8080
-    depends_on:
-      - backend
+      firebase-emulator:
+        condition: service_healthy
+    command: |
+      sh -c "go run cmd/api/main.go"
 ```
+
+**なぜFrontendをDockerコンテナ化しないか**:
+- macOSのボリュームマウントI/Oレイテンシーの影響
+- HMR（Hot Module Replacement）の遅延（数秒の差が開発体験を著しく低下）
+- ホスト実行であれば変更即反映（100ms未満）
+
+#### Dockerfile.dev（Backend用）
+
+```dockerfile
+# backend/Dockerfile.dev
+FROM golang:1.23-alpine
+
+WORKDIR /app
+
+# 開発用ツールのインストール
+RUN apk add --no-cache git curl
+
+# Go モジュールのキャッシュ
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Air（ホットリロードツール）のインストール
+RUN go install github.com/cosmtrek/air@latest
+
+COPY . .
+
+# Air でホットリロード起動
+CMD ["air", "-c", ".air.toml"]
+```
+
+#### macOS + Colima 特有の注意点
+
+1. **ボリュームマウントのパフォーマンス**:
+   ```yaml
+   # 高速化オプション（必要に応じて）
+   volumes:
+     - ./backend:/app:delegated
+   ```
+
+2. **ホストマシンからのアクセス**:
+   - `localhost:3000` でFrontend
+   - `localhost:8080` でBackend API
+   - `localhost:4000` でFirebase Emulator UI
+   - Colima は自動的にポートフォワーディング設定
+
+3. **ネットワーク設定**:
+   - コンテナ間通信: サービス名で解決（`backend`, `firebase-emulator`）
+   - ホストからコンテナ: `localhost:PORT`
 
 ### ローカル開発フロー
 
-1. **バックエンド起動**:
-   ```bash
-   cd backend
-   go run cmd/api/main.go
-   ```
+#### パターン1: ハイブリッドアプローチ（推奨）
 
-2. **フロントエンド起動**:
-   ```bash
-   cd frontend
-   npm run dev
-   ```
+**Backend + Emulator（Docker）+ Frontend（ホスト実行）**
 
-3. **Firebaseエミュレーター起動**:
-   ```bash
-   firebase emulators:start
-   ```
+```bash
+# ターミナル1: Docker Compose でバックエンド + エミュレーター起動
+colima start  # 初回のみ
+docker compose up -d
+docker compose logs -f  # ログ監視（オプション）
 
-4. **動作確認**:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8080
-   - Firestore UI: http://localhost:4000
+# ターミナル2: フロントエンド起動（ホストマシンで直接実行）
+cd frontend
+npm run dev
+
+# 動作確認
+# - Frontend: http://localhost:3000
+# - Backend API: http://localhost:8080/health
+# - Firestore UI: http://localhost:4000
+
+# 停止
+docker compose down  # Backend + Emulator 停止
+# Frontend は Ctrl+C で停止
+colima stop  # 完全に停止する場合（通常は起動したまま）
+```
+
+**所要時間**: 合計30秒程度
+
+**メリット**:
+- Frontend の HMR が高速（変更即反映）
+- Backend は本番環境（Cloud Run）との一貫性を保持
+- Emulator は依存関係を隔離
+
+#### パターン2: すべて個別起動（最軽量）
+
+Docker不要の場合：
+
+```bash
+# ターミナル1: Firebaseエミュレーター起動
+firebase emulators:start
+
+# ターミナル2: バックエンド起動
+cd backend
+go run cmd/api/main.go
+
+# ターミナル3: フロントエンド起動
+cd frontend
+npm run dev
+
+# 動作確認（同上）
+```
+
+**メリット**: Docker/Colima不要、最軽量
+**デメリット**: 本番環境との差異、依存関係管理が煩雑
+
+#### Colima の日常的な使い方
+
+```bash
+# 起動
+colima start
+
+# 状態確認
+colima status
+
+# 停止（VM停止、リソース解放）
+colima stop
+
+# 再起動
+colima restart
+
+# 削除（完全にクリーンアップ）
+colima delete
+
+# リソース情報確認
+docker info
+docker stats
+```
 
 ### 環境変数設定
 

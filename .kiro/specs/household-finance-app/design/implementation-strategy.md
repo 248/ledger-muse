@@ -144,10 +144,97 @@ CI/CD パイプラインと品質ゲートを構築し、以降の開発で自�
   GCP_PROJECT_ID=demo-project
   ```
 
-##### Docker Compose（オプション）
+##### Docker 環境（Colima + Docker Compose）
 
-- [ ] `docker-compose.yml` 作成（バックエンド＋エミュレーター統合）
-- [ ] 一括起動スクリプト作成: `docker-compose up`
+**重要**: ハイブリッドアプローチを採用
+- **Backend + Emulator**: Dockerコンテナ（本番環境との一貫性、依存関係隔離）
+- **Frontend**: ホスト実行（HMRパフォーマンス最適化）
+
+**開発環境**: macOS + Homebrew + Colima
+
+- [ ] Colima のインストール:
+  ```bash
+  brew install colima docker docker-compose
+  ```
+
+- [ ] Colima の初回起動（リソース設定）:
+  ```bash
+  colima start --cpu 4 --memory 8 --disk 60
+  ```
+
+- [ ] `docker-compose.yml` 作成（Backend + Emulator のみ）:
+  ```yaml
+  version: '3.8'
+
+  services:
+    firebase-emulator:
+      image: node:20-alpine
+      working_dir: /app
+      volumes:
+        - ./firebase.json:/app/firebase.json:ro
+        - ./firestore-data:/app/firestore-data
+      ports:
+        - "8080:8080"   # Firestore
+        - "8085:8085"   # Pub/Sub
+        - "9099:9099"   # Authentication
+        - "9199:9199"   # Storage
+        - "4000:4000"   # Emulator UI
+      command: |
+        sh -c "npm install -g firebase-tools && firebase emulators:start --project demo-project"
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:4000"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+
+    backend:
+      build:
+        context: ./backend
+        dockerfile: Dockerfile.dev
+      ports:
+        - "8080:8080"
+      environment:
+        - ENV=local
+        - FIRESTORE_EMULATOR_HOST=firebase-emulator:8080
+        - FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099
+        - STORAGE_EMULATOR_HOST=firebase-emulator:9199
+        - PUBSUB_EMULATOR_HOST=firebase-emulator:8085
+        - GCP_PROJECT_ID=demo-project
+      volumes:
+        - ./backend:/app:delegated  # macOS最適化
+      depends_on:
+        firebase-emulator:
+          condition: service_healthy
+      command: sh -c "go run cmd/api/main.go"
+  ```
+  **注**: Frontendは含まない（HMRパフォーマンス最適化のためホスト実行）
+
+- [ ] `backend/Dockerfile.dev` 作成（ホットリロード対応）:
+  ```dockerfile
+  FROM golang:1.23-alpine
+
+  WORKDIR /app
+
+  RUN apk add --no-cache git curl
+
+  COPY go.mod go.sum ./
+  RUN go mod download
+
+  RUN go install github.com/cosmtrek/air@latest
+
+  COPY . .
+
+  CMD ["air", "-c", ".air.toml"]
+  ```
+
+- [ ] `.air.toml` 作成（Air設定ファイル）
+
+- [ ] 起動確認:
+  ```bash
+  colima start
+  docker compose up -d
+  docker compose logs -f
+  ```
 
 ##### Cloud Vision API モック
 
@@ -163,22 +250,59 @@ CI/CD パイプラインと品質ゲートを構築し、以降の開発で自�
 
 ##### 起動確認
 
+**パターン1: ハイブリッドアプローチ（推奨）**
+
+Backend + Emulator（Docker）+ Frontend（ホスト実行）
+
+- [ ] ターミナル1: Docker Compose でバックエンド + エミュレーター起動
+  ```bash
+  colima start  # 初回のみ
+  docker compose up -d
+  docker compose logs -f  # ログ監視（オプション）
+  ```
+
+- [ ] ターミナル2: フロントエンド起動（ホストマシンで直接実行）
+  ```bash
+  cd frontend
+  npm run dev
+  ```
+
+- [ ] 動作確認:
+  - [ ] http://localhost:3000 でFrontendアクセス確認（HMR即反映を確認）
+  - [ ] http://localhost:8080/health でBackend APIアクセス確認
+  - [ ] http://localhost:4000 でFirestore UIアクセス確認
+
+- [ ] 停止:
+  ```bash
+  docker compose down  # Backend + Emulator 停止
+  # Frontend は Ctrl+C で停止
+  # colima stop  # 完全に停止する場合（通常は起動したまま）
+  ```
+
+**所要時間**: 合計30秒程度
+
+**パターン2: すべて個別起動（最軽量）**
+
+Docker不要の場合：
+
 - [ ] `firebase emulators:start` でエミュレーター起動
 - [ ] `cd backend && go run cmd/api/main.go` でバックエンド起動
 - [ ] `cd frontend && npm run dev` でフロントエンド起動
-- [ ] http://localhost:3000 でアクセス確認
-- [ ] http://localhost:4000 でFirestore UIアクセス確認
+- [ ] 動作確認（同上）
 
 ### 成功基準
 
 - [ ] CI パイプラインがすべて成功する（Green Build）
 - [ ] `main` ブランチへのマージには品質ゲートが必須
 - [ ] Terraform で基本リソースをデプロイ可能
-- [ ] **ローカル開発環境が正常に動作する**:
-  - [ ] Firebaseエミュレーターが起動する
-  - [ ] Frontend（localhost:3000）にアクセスできる
+- [ ] **ローカル開発環境（ハイブリッド構成）が正常に動作する**:
+  - [ ] `colima status` で Running 状態
+  - [ ] `docker compose ps` で Backend + Emulator が起動
+  - [ ] Frontend（localhost:3000）にアクセスできる（HMR即反映を確認）
   - [ ] Backend（localhost:8080/health）が応答する
   - [ ] Firestore UI（localhost:4000）でデータ確認できる
+  - [ ] Frontend のコード変更が即座に反映される（100ms未満）
+  - [ ] `docker compose down` で正常に停止できる
 
 ---
 

@@ -38,6 +38,8 @@ Ledger Muse は、Google Cloud 上で動作する家計簿管理 Web アプリ�
 | **データモデル** | ドメインモデル、ER図、Firestore物理モデル、PostgreSQL移行戦略 | [design/data-models.md](design/data-models.md) |
 | **セキュリティ設計** | 脅威モデル、認証・認可、データ保護、エラーハンドリング | [design/security.md](design/security.md) |
 | **テスト戦略** | Unit/Integration/E2E/Performance テスト、カバレッジ目標 | [design/testing.md](design/testing.md) |
+| **CI/CD パイプライン** | GitHub Actions、Firebase App Hosting統合、品質ゲート、環境戦略 | [design/cicd.md](design/cicd.md) |
+| **実装戦略** | Walking Skeleton アプローチ、段階的開発フェーズ、リスク軽減策 | [design/implementation-strategy.md](design/implementation-strategy.md) |
 
 ---
 

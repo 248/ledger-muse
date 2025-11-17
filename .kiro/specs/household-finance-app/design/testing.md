@@ -13,7 +13,11 @@
 ### Testing Approach
 
 - **Go**: `testing` パッケージ + モック（`gomock` または手動モック実装）
-- **TypeScript**: Jest + React Testing Library
+- **TypeScript**: **Vitest** + React Testing Library
+  - Viteベースで高速なテスト実行
+  - Next.js 15との相性が良い
+  - TypeScript/ESMネイティブサポート
+  - Jest互換API
 - **Repository ポート**のモック実装でインメモリテスト
 
 ## Integration Tests

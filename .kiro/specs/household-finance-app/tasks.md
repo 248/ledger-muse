@@ -39,7 +39,7 @@
   - PR Preview 環境の設定
   - _Requirements: 13.1, 15.10_
 
-- [ ] 2.3 (P) Cloud Run デプロイワークフロー作成
+- [x] 2.3 (P) Cloud Run デプロイワークフロー作成
   - `.github/workflows/deploy-backend.yml` の実装
   - Artifact Registry へのイメージプッシュ
   - Cloud Run へのデプロイ（Staging環境）

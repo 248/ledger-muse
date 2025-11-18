@@ -47,26 +47,54 @@
   - _Requirements: 12.1, 15.10_
 
 - [ ] 3. Terraform によるインフラ構成管理
-- [ ] 3.1 Terraform プロジェクト初期化
+- [ ] 3.1 リモートステート S3/GCS バケット作成（Terraform）
+  - `google_storage_bucket` で backend 用バケット作成（バージョニング有効化）
+  - IAM 最小権限（CI/開発者のロール分離）
+  - _Requirements: 17.1, 17.2_
+
+- [ ] 3.2 Terraform プロジェクト初期化
   - Terraform バージョン指定（v1.9.x）
   - リモートステート設定（Cloud Storage バックエンド）
   - State ロッキング設定
   - 環境分離構造（`terraform/environments/staging`, `prod`）
   - _Requirements: 17.1, 17.2, 17.3_
 
-- [ ] 3.2 (P) Terraform モジュール作成
+- [ ] 3.3 (P) Terraform モジュール作成
   - `modules/cloud-run` モジュール（Backend API ホスティング）
   - `modules/firestore` モジュール（データベース）
   - `modules/storage` モジュール（Cloud Storage バケット）
   - `modules/iam` モジュール（サービスアカウント、権限管理）
   - _Requirements: 17.5_
 
-- [ ] 3.3 Staging 環境の Terraform 定義
+- [ ] 3.4 Artifact Registry リポジトリ作成（Terraform）
+  - `asia-northeast1` に Docker リポジトリ `ledger-muse` を作成
+  - 読み書き権限を CI 用 SA に付与
+  - _Requirements: 12.1, 15.10_
+
+- [ ] 3.5 Staging 環境の Terraform 定義
   - `terraform/environments/staging/main.tf` の作成
   - 環境固有変数（`staging.tfvars`）の定義
   - Cloud Run、Firestore、Cloud Storage の設定
   - `terraform plan` による変更内容の確認
   - _Requirements: 12.12, 17.2, 17.4_
+
+  - 備考: `terraform/common.auto.tfvars` に共通変数(project_id/region)を一度設定して再利用
+
+- [ ] 3.6 Queue/Async 基盤スキャフォールド（Terraform）
+  - Pub/Sub トピック/サブスクリプション雛形
+  - Cloud Tasks キュー雛形
+  - 将来の OCR ワーカー用 Cloud Run サービス/SA をプレースホルダー作成
+  - _Requirements: 5.9, 5.10, 12.4_
+
+- [ ] 3.7 KMS キーリング/キー雛形（Terraform）
+  - `kms` キーリング（stg/prod）とキー作成
+  - rotation policy/初期 IAM を設定
+  - _Requirements: 19.4, 19.6_
+
+- [ ] 3.8 Monitoring/Alerting 雛形（Terraform）
+  - Uptime Check + AlertPolicy（Cloud Run 200 OK/レスポンス遅延）
+  - エラーレート/レスポンスタイムの基本アラートをテンプレート化
+  - _Requirements: 12.8, 15.3, 15.4_
 
 - [ ] 4. ローカル開発環境セットアップ
 - [ ] 4.1 Firebase Emulator Suite のセットアップ

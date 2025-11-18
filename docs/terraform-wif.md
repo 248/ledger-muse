@@ -17,20 +17,13 @@
 ```bash
 cd terraform/wif
 
-cat > terraform.tfvars <<'EOF'
-project_id           = "your-gcp-project-id"
-github_repository    = "owner/repo"              # 例: ledger-muse/ledger-muse
-service_account_id   = "github-deployer"
-service_account_roles = [
-  "roles/run.admin",
-  "roles/artifactregistry.writer",
-  "roles/iam.serviceAccountUser"
-]
-EOF
+# 共通変数: ../common.auto.tfvars を編集（project_id/region）。初回のみ。
+# 個別変数はサンプルをコピーして編集。
+cp terraform.tfvars.example terraform.tfvars
 
 terraform init
-terraform plan
-terraform apply
+terraform plan  -var-file=../common.auto.tfvars
+terraform apply -var-file=../common.auto.tfvars
 ```
 
 エラー回避のヒント:

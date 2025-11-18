@@ -19,6 +19,7 @@ Firebase App Hosting のワークフローで必要な GitHub Secrets:
 4. ダウンロードした JSON の内容を `FIREBASE_SERVICE_ACCOUNT` にそのまま貼り付けて GitHub Secrets に登録。
 5. `FIREBASE_PROJECT_ID` は Firebase プロジェクト ID を手入力。`FIREBASE_APPHOSTING_SITE_*` は App Hosting のサイト ID をコンソールで確認。
 6. Terraformで自動化できる部分: サービスアカウント作成・ロール付与（`google_service_account`、`google_project_iam_member`）。App Hosting サイト作成や GH Secrets 登録は手作業。
+7. Terraform テンプレ: `terraform/apphosting` ディレクトリを利用（鍵発行は state に残さないため手作業）。
 
 ---
 

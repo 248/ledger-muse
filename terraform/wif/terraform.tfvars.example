@@ -1,0 +1,8 @@
+# Example variables for WIF module
+github_repository    = "owner/repo"       # 例: ledger-muse/ledger-muse
+service_account_id   = "github-deployer"  # 任意に変更可
+service_account_roles = [
+  "roles/run.admin",
+  "roles/artifactregistry.writer",
+  "roles/iam.serviceAccountUser"
+]

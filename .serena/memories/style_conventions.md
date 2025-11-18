@@ -1,0 +1,3 @@
+- 開発プロセス: Kiro式Spec Driven Development（要件→設計→タスク→実装の3フェーズ承認）。`.kiro/specs/`の資料と`/prompts:kiro-*`を参照。
+- 回答方針: 思考は英語、回答生成は日本語（AGENTS.md指示）。
+- コードスタイル/命名規約: 現時点でリポジトリに実装コードがなく明示規約も未記載。各技術スタック（Next.js/TypeScript, Go/Echo, Terraformなど）の標準的ベストプラクティスを採用予定とし、実装開始時に規約を定義・追記する。

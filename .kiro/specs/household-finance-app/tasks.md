@@ -3,13 +3,13 @@
 ## Phase 0: プロジェクト基盤構築
 
 - [ ] 1. 開発環境セットアップ
-- [ ] 1.1 (P) リポジトリとディレクトリ構造の初期化
+- [x] 1.1 (P) リポジトリとディレクトリ構造の初期化
   - モノレポ構造（`frontend/`, `backend/`, `terraform/`）の作成
   - `.gitignore` の設定（Node.js、Go、Terraform用）
   - ルートレベルの `README.md` 作成
   - _Requirements: 16.1_
 
-- [ ] 1.2 (P) Frontend プロジェクトの初期化
+- [x] 1.2 (P) Frontend プロジェクトの初期化
   - Next.js 15.x プロジェクト作成（TypeScript、App Router）
   - ESLint、Prettier の設定
   - Vitest + React Testing Library のセットアップ
@@ -17,7 +17,7 @@
   - `package.json` スクリプト定義（dev、build、lint、type-check、test）
   - _Requirements: 13.1, 16.1_
 
-- [ ] 1.3 (P) Backend プロジェクトの初期化
+- [x] 1.3 (P) Backend プロジェクトの初期化
   - Go プロジェクト初期化（`go mod init`）
   - Echo フレームワーク v4.x の導入
   - golangci-lint 設定（`.golangci.yml`）

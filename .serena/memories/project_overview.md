@@ -1,0 +1,4 @@
+- プロジェクト目的: 家計簿＋レシートOCR＋ナレッジ機能を備えたWebアプリをGCP上で構築し、認証/ストレージ/DB/OCR等の実務APIとインフラ設計を学ぶ（docs/memo.md）。
+- 主要スタック（計画）: フロントNext.js(TypeScript)、バックエンドGo+Echo、インフラTerraform(GCP: Identity Platform, Firestore→将来Cloud SQL、Cloud Storage、Vision API、Pub/Sub+Cloud Tasksなど)。
+- 非機能方針: 低コスト優先・将来商用化を見据えた拡張性、監視/ログ/アラート、TLS/IAM最小権限など（docs/memo.md）。
+- リポジトリ構成（現状）: コードは未着手で、ドキュメントのみ。`AGENTS.md`（作業ガイド）、`.kiro/specs/household-finance-app/`に要件/設計/タスク等のスペック資料がまとまっており、`.codex/prompts/`にKiroワークフロープロンプトがある。

@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "next check",
+    "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
   },

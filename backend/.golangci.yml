@@ -8,6 +8,9 @@ linters:
     - gofmt
     - goimports
     - revive
+    - errcheck
+    - unused
+    - ineffassign
 
 issues:
   exclude-use-default: false

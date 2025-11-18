@@ -29,7 +29,7 @@
 - セキュリティ: IAM 最小権限、TLS 前提、秘密情報のコード同梱禁止
 
 ### Testing
-- フロント: Jest/React Testing Library を想定
+- フロント: Vitest/React Testing Library を想定
 - バックエンド: go test でユニット＋ハンドラ分離テスト
 - CI: Cloud Build でテスト・lint を将来自動化
 

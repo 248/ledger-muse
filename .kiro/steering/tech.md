@@ -5,12 +5,19 @@
 - フロント（Next.js/TypeScript）＋ API（Go/Echo）＋ 非同期 OCR パイプライン（Pub/Sub + Cloud Tasks 想定）を GCP 上で構成
 - インフラは Terraform で環境分離（dev/stg/prod想定）とリモートステート管理を行う方針
 - 認証は Identity Platform、データは Firestore（初期）→将来 Cloud SQL 等へ移行可能な設計を考慮
+- 現状はモノレポの土台として Next.js App Router + Tailwind と Echo ベースのヘルスチェック API を先行実装
 
 ## Core Technologies
 
 - **Language**: TypeScript（フロント）, Go（バックエンド）
 - **Framework**: Next.js, Echo
 - **Runtime**: Node.js（LTS 想定）, Go（安定版）
+
+## Current Implementation Snapshot (2025-11)
+
+- フロント: Next.js 15 (App Router) + React 18 + Tailwind。TS `strict` 有効、`@/*` パスエイリアスを `tsconfig.json` で定義。Vitest + RTL + JSDOM を `frontend/test/setup.ts` 経由でセットアップ。
+- バックエンド: Go 1.23 + Echo 4.11。`cmd/api` でブートし、`internal/{adapter/http,application,domain,port}` に層分離。ヘルスチェックは `pkg/version` から注入したバージョンを返すサービス経由で実装。
+- テスト/ガードレール: `/tests/*.sh` で最低限の構成・依存・スクリプトを検証。新規追加時もスクリプトや主要依存をここに反映させる。
 
 ## Key Libraries / Services
 
@@ -40,7 +47,18 @@
 
 ### Common Commands
 ```bash
-# TODO: 実装着手後に dev/build/test コマンドを定義（Next.js, Go, Terraform fmt/plan 等）
+# frontend
+npm run dev         # Next.js 開発サーバ
+npm run lint        # Next.js lint
+npm run type-check  # tsc --noEmit
+npm run test        # vitest run
+
+# backend
+go run ./cmd/api    # Echo API を起動
+go test ./...       # バックエンドのユニット/ハンドラ層テスト
+
+# infra (予定)
+terraform fmt && terraform plan  # 環境別 workspace 前提で実行
 ```
 
 ## Key Technical Decisions
@@ -49,4 +67,4 @@
 - 非同期パイプラインでアップロードと OCR を疎結合化し、遅延吸収と拡張を容易にする
 - 環境分離と最小権限設計を前提に、商用化に向けたセキュリティと監視を初期から考慮
 
-updated_at: 2024-11-18
+updated_at: 2025-11-18

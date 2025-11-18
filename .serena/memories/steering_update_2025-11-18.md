@@ -1,0 +1,4 @@
+## Steering sync (2025-11-18)
+- Updated .kiro/steering/tech.md with current implementation snapshot: Next.js 15 App Router + React 18 + Tailwind; Vitest/RTL setup via frontend/test/setup.ts; Go 1.23 + Echo 4.11 health check layering; tests/*.sh as guardrails; added concrete front/back/infra commands.
+- Updated .kiro/steering/structure.md to match actual layout: App Router scaffold and smoke test, path alias set; backend layering internal/{adapter,http,application,domain,port} with versioned health handler; terraform still placeholder (.gitkeep) with note to design workspaces/remote state first; reiterated feature-first UI and layered API patterns.
+- Drift notes: Terraform not yet modularized; backend repository layer not implemented. Recommendations to enforce layer direction for new APIs and set Terraform workspaces/remote state before adding modules.

@@ -3,7 +3,7 @@
 ## Phase 0: プロジェクト基盤構築
 
 - [ ] 1. 開発環境セットアップ
-- [ ] 1.1 (P) リポジトリとディレクトリ構造の初期化
+- [x] 1.1 (P) リポジトリとディレクトリ構造の初期化
   - モノレポ構造（`frontend/`, `backend/`, `terraform/`）の作成
   - `.gitignore` の設定（Node.js、Go、Terraform用）
   - ルートレベルの `README.md` 作成

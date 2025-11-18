@@ -25,7 +25,7 @@
   - _Requirements: 10.1, 16.1_
 
 - [ ] 2. CI/CD パイプライン構築
-- [ ] 2.1 GitHub Actions ワークフロー作成
+- [x] 2.1 GitHub Actions ワークフロー作成
   - `.github/workflows/quality-gate.yml` の実装（Lint、TypeCheck、Test、Build）
   - Frontend 品質ゲート（ESLint、TypeScript、Vitest）
   - Backend 品質ゲート（golangci-lint、`go test`、`go build`）

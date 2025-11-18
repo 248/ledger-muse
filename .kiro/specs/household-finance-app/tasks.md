@@ -9,7 +9,7 @@
   - ルートレベルの `README.md` 作成
   - _Requirements: 16.1_
 
-- [ ] 1.2 (P) Frontend プロジェクトの初期化
+- [x] 1.2 (P) Frontend プロジェクトの初期化
   - Next.js 15.x プロジェクト作成（TypeScript、App Router）
   - ESLint、Prettier の設定
   - Vitest + React Testing Library のセットアップ

@@ -46,168 +46,128 @@ Firebase App Hosting は PR 作成時に自動でプレビュー環境を生成�
 
 ## GitHub Actions パイプライン
 
-### 品質ゲートパイプライン（全PR共通）
+### 統合CI/CDパイプライン
+
+プロジェクトでは単一の統合型パイプラインを採用し、品質チェックからデプロイまでを一貫して管理します。
 
 ```yaml
-# .github/workflows/quality-gate.yml
-name: Quality Gate
+# .github/workflows/ci.yml
+name: CI/CD Pipeline
 
 on:
   pull_request:
     branches: [main, develop]
   push:
     branches: [main, develop]
+  workflow_dispatch:
+
+# Cancel in-progress runs on the same PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  # 1. 変更検出ジョブ
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+              - '.github/workflows/ci.yml'
+              - 'firebase.json'
+            backend:
+              - 'backend/**'
+              - '.github/workflows/ci.yml'
+
+  # 2. Frontend品質チェック（並列実行）
   frontend-quality:
     name: Frontend Quality Checks
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
     steps:
-      - uses: actions/checkout@v4
+      # 品質チェック（Lint, TypeCheck, Test, Build）
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Type Check
-        run: npm run type-check
-
-      - name: Unit Tests
-        run: npm run test
-
-      - name: Build Check
-        run: npm run build
-
+  # 3. Backend品質チェック（並列実行）
   backend-quality:
     name: Backend Quality Checks
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./backend
     steps:
-      - uses: actions/checkout@v4
+      # 品質チェック（Lint, Test, Build）
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-          cache: true
-          cache-dependency-path: backend/go.sum
+  # 4. Frontendデプロイ（品質チェック成功時のみ）
+  deploy-frontend:
+    name: Deploy Frontend to App Hosting
+    needs: [changes, frontend-quality]
+    if: |
+      needs.changes.outputs.frontend == 'true' &&
+      (github.event_name == 'push' || github.event_name == 'pull_request')
+    runs-on: ubuntu-latest
+    steps:
+      # Firebase App Hostingへのデプロイ
 
-      - name: Lint
-        uses: golangci/golangci-lint-action@v4
-        with:
-          version: latest
-          working-directory: backend
-
-      - name: Unit Tests
-        run: go test -v -race -coverprofile=coverage.out ./...
-
-      - name: Coverage Report
-        run: go tool cover -func=coverage.out
-
-      - name: Build Check
-        run: go build -v ./...
+  # 5. Backendデプロイ（品質チェック成功時のみ）
+  deploy-backend:
+    name: Deploy Backend to Cloud Run
+    needs: [changes, backend-quality]
+    if: |
+      needs.changes.outputs.backend == 'true' &&
+      github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      # Cloud Runへのデプロイ
 ```
 
-### Backend デプロイパイプライン
+### パイプラインの動作フロー
 
-```yaml
-# .github/workflows/deploy-backend.yml
-name: Deploy Backend to Cloud Run
-
-on:
-  push:
-    branches:
-      - main      # Production
-      - develop   # Staging
-    paths:
-      - 'backend/**'
-      - '.github/workflows/deploy-backend.yml'
-
-env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  REGION: asia-northeast1
-  SERVICE_NAME: ledger-muse-api
-
-jobs:
-  deploy:
-    name: Deploy to Cloud Run
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set environment
-        id: set-env
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "ENV=prod" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            echo "ENV=staging" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
-          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Configure Docker for Artifact Registry
-        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
-
-      - name: Build Docker image
-        working-directory: ./backend
-        run: |
-          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/ledger-muse/${{ env.SERVICE_NAME }}:${{ github.sha }} .
-          docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/ledger-muse/${{ env.SERVICE_NAME }}:${{ github.sha }} \
-                     ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/ledger-muse/${{ env.SERVICE_NAME }}:${{ steps.set-env.outputs.ENV }}
-
-      - name: Push Docker image
-        run: |
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/ledger-muse/${{ env.SERVICE_NAME }}:${{ github.sha }}
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/ledger-muse/${{ env.SERVICE_NAME }}:${{ steps.set-env.outputs.ENV }}
-
-      - name: Deploy to Cloud Run
-        run: |
-          gcloud run deploy ${{ env.SERVICE_NAME }}-${{ steps.set-env.outputs.ENV }} \
-            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/ledger-muse/${{ env.SERVICE_NAME }}:${{ github.sha }} \
-            --platform managed \
-            --region ${{ env.REGION }} \
-            --allow-unauthenticated \
-            --set-env-vars "ENV=${{ steps.set-env.outputs.ENV }}" \
-            --service-account ledger-muse-backend@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
-            --min-instances 0 \
-            --max-instances 10 \
-            --memory 512Mi \
-            --cpu 1 \
-            --timeout 60s
-
-      - name: Output Service URL
-        run: |
-          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }}-${{ steps.set-env.outputs.ENV }} \
-            --region ${{ env.REGION }} \
-            --format 'value(status.url)')
-          echo "Service URL: $SERVICE_URL"
 ```
+┌──────────────┐
+│   changes    │  変更検出
+└──────┬───────┘
+       │
+       ├─────────────────┬─────────────────┐
+       │                 │                 │
+       ▼                 ▼                 ▼
+┌──────────────┐  ┌──────────────┐  スキップ
+│  frontend-   │  │  backend-    │  (変更なし)
+│  quality     │  │  quality     │
+└──────┬───────┘  └──────┬───────┘
+       │                 │
+       │ (成功時のみ)     │ (成功時のみ)
+       ▼                 ▼
+┌──────────────┐  ┌──────────────┐
+│  deploy-     │  │  deploy-     │
+│  frontend    │  │  backend     │
+└──────────────┘  └──────────────┘
+```
+
+### 主な改善点
+
+1. **品質保証の強化**
+   - 品質チェックが失敗した場合、デプロイは自動的にスキップ
+   - `needs`による明示的な依存関係定義
+
+2. **効率化**
+   - `dorny/paths-filter`で変更がない部分は自動スキップ
+   - Frontend/Backend品質チェックを並列実行
+
+3. **重複実行の防止**
+   - `concurrency`制御で同じPRの古い実行を自動キャンセル
+
+4. **可視性の向上**
+   - 1つのワークフローで全体のステータスを一目で確認可能
+   - GitHub UIでパイプライン全体の進捗を追跡
 
 ## ローカル開発環境セットアップ
 

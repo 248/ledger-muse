@@ -45,6 +45,11 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools@latest
 
+      - name: Setup Firebase Authentication
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT" > "${HOME}/gcp-key.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcp-key.json" >> "$GITHUB_ENV"
+
       - name: Select site target
         id: site
         run: |

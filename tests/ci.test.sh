@@ -15,7 +15,7 @@ assert_file() {
 assert_contains() {
   local file="$1"
   local pattern="$2"
-  if ! grep -qE "$pattern" "$file"; then
+  if ! grep -qE -- "$pattern" "$file"; then
     echo "missing pattern in $file: $pattern"
     fail=1
   fi

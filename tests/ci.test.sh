@@ -67,11 +67,8 @@ assert_contains "$workflow" "golangci-lint-action@v4"
 assert_contains "$workflow" "go test .*./\\.\\.\\."
 assert_contains "$workflow" "go build -v ./\\.\\.\\."
 
-# Frontend deployment job
-assert_contains "$workflow" "deploy-frontend:"
-assert_contains "$workflow" "needs:\\s*\\[changes, frontend-quality\\]"
-assert_contains "$workflow" "firebase apphosting:sites:deploy"
-assert_contains "$workflow" "GOOGLE_APPLICATION_CREDENTIALS"
+# Note: Frontend deployment is handled by Firebase App Hosting GitHub integration
+# No deploy-frontend job in CI pipeline
 
 # Backend deployment job
 assert_contains "$workflow" "deploy-backend:"

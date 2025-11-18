@@ -32,7 +32,7 @@
   - ブランチ保護ルール設定（`main` には品質ゲート通過必須）
   - _Requirements: 15.10, 16.1_
 
-- [ ] 2.2 (P) Firebase App Hosting の GitHub 統合
+- [x] 2.2 (P) Firebase App Hosting の GitHub 統合
   - Firebase プロジェクト作成
   - Firebase App Hosting の有効化
   - GitHub リポジトリ連携設定

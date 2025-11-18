@@ -1,3 +1,4 @@
+// Package porthttp provides HTTP routing interfaces.
 package porthttp
 
 import "github.com/labstack/echo/v4"

@@ -17,7 +17,7 @@
   - `package.json` スクリプト定義（dev、build、lint、type-check、test）
   - _Requirements: 13.1, 16.1_
 
-- [ ] 1.3 (P) Backend プロジェクトの初期化
+- [x] 1.3 (P) Backend プロジェクトの初期化
   - Go プロジェクト初期化（`go mod init`）
   - Echo フレームワーク v4.x の導入
   - golangci-lint 設定（`.golangci.yml`）

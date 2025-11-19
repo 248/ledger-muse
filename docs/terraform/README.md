@@ -31,9 +31,21 @@
    - ドキュメント: `docs/terraform/apphosting.md`  
    - 手順: `terraform/apphosting/` で tfvars 作成 → `init/plan/apply -var-file=../common.auto.tfvars`
 
-5) **環境ごとのモジュール適用 (今後追加)**  
-   - 例: Artifact Registry / Cloud Run / Firestore / Storage / PubSub など  
-   - 追加モジュールはそれぞれのディレクトリに README を置き、このガイドにリンクを追記する
+5) **環境ごとのモジュール適用**  
+  - 例: Artifact Registry / Cloud Run / Firestore / Storage / PubSub など  
+  - `terraform/environments/<env>/main.tf` で必要なモジュールを呼び出し、`-var-file=../common.auto.tfvars` を指定して plan/apply する  
+  - モジュールを追加したらこのガイドに用途と順序を追記する
+
+## モジュールカタログ
+
+| モジュール | ディレクトリ | 主な役割 | 主な入出力 |
+|------------|--------------|----------|------------|
+| Artifact Registry | `terraform/modules/artifact-registry` | Docker レジストリを `format = \"DOCKER\"` で作成し、URL/リソース名を出力 | `repository_id`, `region` / `repository_url` |
+| Backend IAM | `terraform/modules/iam` | Backend API 実行用のサービスアカウントを作成し、指定したロールを一括付与 | `service_account_id`, `service_account_roles` / `service_account_email` |
+| Cloud Run | `terraform/modules/cloud-run` | 指定イメージを Cloud Run にデプロイし、min/max スケール注釈とメモリ/CPU を設定 | `service_name`, `container_image`, `service_account_email` / `service_url` |
+| Storage | `terraform/modules/storage` | Cloud Storage バケットを作成し、ライフサイクル削除と任意の KMS 暗号化を設定 | `bucket_name`, `lifecycle_age_days`, `kms_key_name` / `bucket_url` |
+
+> これらのモジュールは `tests/terraform-modules.test.sh` で構造を検証しており、新規変更時はテストも更新してください。
 
 ## 運用ルール
 - 共通設定は本ガイドと `common.auto.tfvars` に集約し、モジュール README には差分・注意点のみを書く

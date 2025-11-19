@@ -1,0 +1,1 @@
+2025-11-20: Added Terraform module scaffolding under terraform/modules for Artifact Registry, backend IAM service account, Cloud Run, and Storage (with autoscaling annotations + lifecycle/KMS support). Introduced tests/terraform-modules.test.sh to guard module structure and documented the catalog in docs/terraform/README.md; mark spec task 2.3 complete.

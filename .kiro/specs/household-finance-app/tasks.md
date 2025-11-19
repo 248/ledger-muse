@@ -144,7 +144,7 @@ Phase 0では、以下の3つの基盤を構築します：
     - `terraform/wif/backend.tf` を追加し `terraform init -migrate-state` で GCS backend に移行するドキュメント (`docs/terraform/wif.md`) とテスト (`tests/terraform-remote-state.test.sh`) を更新。
   - _Requirements: 17.1, 17.2, 17.3_
 
-- [ ] 2.3 (P) Terraform モジュール作成（基本リソース）
+- [x] 2.3 (P) Terraform モジュール作成（基本リソース）
   - **前提条件**: タスク2.2完了
   - **既存モジュール**: `terraform/wif/` - Workload Identity Federation（デプロイ済み、移行のみ）
   - **新規作成モジュール**:
@@ -157,6 +157,9 @@ Phase 0では、以下の3つの基盤を構築します：
     - `modules/iam/` は Backend API用のService Accountを作成（WIF Deployer SAとは別物）
   - **成果物**: `terraform/modules/` 配下のモジュールファイル（`main.tf`, `variables.tf`, `outputs.tf`）
   - **検証方法**: `terraform validate` で各モジュールの構文チェック
+  - **メモ (2025-11-20)**:
+    - Artifact Registry / IAM / Cloud Run / Storage の 4 モジュールを設計書通りに作成し、`tests/terraform-modules.test.sh` で存在と主要属性を検証。
+    - `docs/terraform/README.md` にモジュール一覧を追記して参照先を一元化。
   - _Requirements: 17.5_
 
 - [ ] 2.4 (P) Artifact Registry リポジトリ作成（Terraform apply）

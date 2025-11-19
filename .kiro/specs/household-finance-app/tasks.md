@@ -83,7 +83,7 @@ Phase 0では、以下の3つの基盤を構築します：
 
 ---
 
-- [ ] 2.1 リモートステートバケット作成（Terraform Bootstrap）
+- [x] 2.1 リモートステートバケット作成（Terraform Bootstrap）
   - **前提条件**: GCPプロジェクト作成済み、Terraform CLI インストール済み
   - `google_storage_bucket` で Terraform ステート用バケット作成（バージョニング有効化）
   - IAM 最小権限設定（開発者に `roles/storage.objectAdmin`）
@@ -96,6 +96,9 @@ Phase 0では、以下の3つの基盤を構築します：
       --uniform-bucket-level-access
     ```
   - **注意**: 初回のみ手動実行、または bootstrap 用 Terraform で作成
+  - **メモ (2025-11-19)**:
+    - `terraform/bootstrap` に state バケット作成手順・テストを追加し、`common.auto.tfvars` から `region` を受け取れるよう修正。
+    - Terraform Runner 専用 SA モジュール (`terraform/iam-runner`) とドキュメントを追加し、runner を `state_admin_members` に追加して `GOOGLE_IMPERSONATE_SERVICE_ACCOUNT` で Terraform を実行する運用を整理。
   - _Requirements: 17.1, 17.2_
 
 - [ ] 2.2 Terraform プロジェクト初期化とWIF state移行

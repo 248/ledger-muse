@@ -1,0 +1,8 @@
+state_admin_members = [
+  # 例: Terraform 実行者や CI のサービスアカウント
+  "user:you@example.com",
+  "serviceAccount:ci@your-project-id.iam.gserviceaccount.com"
+]
+
+# location を変えたい場合のみ設定（デフォルト: asia-northeast1）
+# location = "asia-northeast1"

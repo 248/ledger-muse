@@ -48,34 +48,35 @@
 | PR# | ブランチ名 | Phase | タスク | サイズ | 並列実行 | 依存関係 |
 |-----|-----------|-------|--------|--------|----------|----------|
 | #1 | `setup/project-structure` | 0 | 1.1, 1.2, 1.3 | Small | ✅ | なし |
-| #2 | `setup/ci-cd-pipeline` | 0 | 2.1, 2.2, 2.3 | Medium | ❌ | PR #1 |
-| #3 | `setup/terraform-infrastructure` | 0 | 3.1, 3.2, 3.3 | Medium | ✅ | なし |
-| #4 | `setup/local-dev-environment` | 0 | 4.1-4.5 | Medium | ❌ | PR #1 |
-| #5 | `feature/hello-world-deployment` | 1 | 5.1-5.3, 6.1-6.4, 7.1-7.3 | Medium | ❌ | PR #2, #4 |
-| #6 | `feature/auth-infrastructure` | 2 | 8.1, 8.2 | Small | ✅ | PR #3, #5 |
-| #7 | `feature/authentication` | 2 | 9.1-9.5, 10.1-10.3, 11.1-11.3 | Large | ❌ | PR #6 |
-| #8 | `feature/backend-transaction-domain` | 3 | 12.1-12.3, 13.1-13.3 | Medium | ✅ | PR #7 |
-| #9 | `feature/backend-category` | 3 | 15.1-15.4 | Small | ✅ | PR #7 |
-| #10 | `feature/backend-transaction-api` | 3 | 14.1-14.6, 17.1 | Medium | ❌ | PR #8, #9 |
-| #11 | `feature/frontend-transaction-ui` | 3 | 16.1-16.5, 17.2, 17.3 | Large | ❌ | PR #10 |
-| #12 | `feature/receipt-infrastructure` | 4 | 18.1, 18.2, 22.1-22.3 | Medium | ✅ | PR #3 |
-| #13 | `feature/receipt-domain-storage` | 4 | 19.1, 19.2, 20.1, 20.2 | Small | ✅ | PR #7 |
-| #14 | `feature/receipt-upload-api` | 4 | 21.1-21.4 | Medium | ❌ | PR #12, #13 |
-| #15 | `feature/ocr-worker` | 4 | 23.1-23.3, 24.1-24.4, 26.1, 26.2 | Large | ❌ | PR #14 |
-| #16 | `feature/receipt-ui` | 4 | 25.1-25.4, 26.3 | Medium | ❌ | PR #15 |
-| #17 | `feature/memo-knowledge` | 5 | 27.1-27.4, 28.1-28.4, 29.1-29.3 | Medium | ❌ | PR #11 |
-| #18 | `feature/search-functionality` | 6 | 30.1, 30.2, 32.1, 32.2, 33.1, 33.3 | Medium | ✅ | PR #17 |
-| #19 | `feature/report-functionality` | 6 | 31.1, 31.2, 32.3, 32.4, 33.2, 33.4 | Medium | ✅ | PR #17 |
-| #20 | `ops/logging-monitoring` | 7 | 34.1-34.4 | Medium | ✅ | PR #10 |
-| #21 | `ops/security-hardening` | 7 | 35.1-35.5 | Medium | ✅ | PR #7 |
-| #22 | `ops/performance-optimization` | 7 | 36.1-36.3 | Small | ❌ | PR #19 |
-| #23 | `ops/production-setup` | 7 | 37.1-37.3 | Medium | ❌ | PR #20, #21, #22 |
+| #2 | `setup/terraform-infrastructure` | 0 | 2.1-2.6 | Medium | ✅ | なし |
+| #3 | `setup/ci-quality-gate` | 0 | 3.1, 3.2 | Small | ❌ | PR #1 |
+| #4 | `setup/cloud-run-deploy` | 0 | 4.1 | Small | ❌ | PR #2, #3 |
+| #5 | `setup/local-dev-environment` | 0 | 5.1-5.5 | Medium | ❌ | PR #1 |
+| #6 | `feature/hello-world-deployment` | 1 | 6.1-6.3, 7.1-7.4, 8.1-8.3 | Medium | ❌ | PR #3, #5 |
+| #7 | `feature/auth-infrastructure` | 2 | 9.1, 9.2 | Small | ✅ | PR #2, #6 |
+| #8 | `feature/authentication` | 2 | 10.1-10.5, 11.1-11.3, 12.1-12.3 | Large | ❌ | PR #7 |
+| #9 | `feature/backend-transaction-domain` | 3 | 13.1-13.3, 14.1-14.3 | Medium | ✅ | PR #8 |
+| #10 | `feature/backend-category` | 3 | 16.1-16.4 | Small | ✅ | PR #8 |
+| #11 | `feature/backend-transaction-api` | 3 | 15.1-15.6, 18.1 | Medium | ❌ | PR #9, #10 |
+| #12 | `feature/frontend-transaction-ui` | 3 | 17.1-17.5, 18.2, 18.3 | Large | ❌ | PR #11 |
+| #13 | `feature/receipt-infrastructure` | 4 | 19.1, 19.2, 23.1-23.3 | Medium | ✅ | PR #2 |
+| #14 | `feature/receipt-domain-storage` | 4 | 20.1, 20.2, 21.1, 21.2 | Small | ✅ | PR #8 |
+| #15 | `feature/receipt-upload-api` | 4 | 22.1-22.4 | Medium | ❌ | PR #13, #14 |
+| #16 | `feature/ocr-worker` | 4 | 24.1-24.3, 25.1-25.4, 27.1, 27.2 | Large | ❌ | PR #15 |
+| #17 | `feature/receipt-ui` | 4 | 26.1-26.4, 27.3 | Medium | ❌ | PR #16 |
+| #18 | `feature/memo-knowledge` | 5 | 28.1-28.4, 29.1-29.4, 30.1-30.3 | Medium | ❌ | PR #12 |
+| #19 | `feature/search-functionality` | 6 | 31.1, 31.2, 33.1, 33.2, 34.1, 34.3 | Medium | ✅ | PR #18 |
+| #20 | `feature/report-functionality` | 6 | 32.1, 32.2, 33.3, 33.4, 34.2, 34.4 | Medium | ✅ | PR #18 |
+| #21 | `ops/logging-monitoring` | 7 | 35.1-35.4 | Medium | ✅ | PR #11 |
+| #22 | `ops/security-hardening` | 7 | 36.1-36.5 | Medium | ✅ | PR #8 |
+| #23 | `ops/performance-optimization` | 7 | 37.1-37.3 | Small | ❌ | PR #20 |
+| #24 | `ops/production-setup` | 7 | 38.1-38.3 | Medium | ❌ | PR #21, #22, #23 |
 
 ---
 
 ## Phase別実装計画
 
-### Phase 0: プロジェクト基盤構築 (4 PRs)
+### Phase 0: プロジェクト基盤構築 (5 PRs)
 
 #### PR #1: `setup/project-structure`
 **タスク**: 1.1, 1.2, 1.3
@@ -99,55 +100,90 @@
 
 ---
 
-#### PR #2: `setup/ci-cd-pipeline`
-**タスク**: 2.1, 2.2, 2.3
-**依存関係**: PR #1 (`setup/project-structure`)
-**サイズ**: Medium
-**並列実行**: ❌ (PR #1 に依存)
-
-**成果物**:
-- `.github/workflows/quality-gate.yml` (Lint, TypeCheck, Test, Build)
-- Firebase App Hosting の GitHub 統合
-- Cloud Run デプロイワークフロー (`.github/workflows/deploy-backend.yml`)
-- ブランチ保護ルール設定
-
-**レビューポイント**:
-- CI/CD パイプラインのステップ妥当性
-- 品質ゲートの網羅性
-- デプロイ設定のセキュリティ
-
-**作業時間見積**: 6-8 時間
-**レビュー時間見積**: 1.5 時間
-
----
-
-#### PR #3: `setup/terraform-infrastructure`
-**タスク**: 3.1, 3.2, 3.3
+#### PR #2: `setup/terraform-infrastructure`
+**タスク**: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6
 **依存関係**: なし (PR #1 と並列実行可能)
 **サイズ**: Medium
 **並列実行**: ✅ 可能
 
 **成果物**:
-- Terraform プロジェクト初期化 (リモートステート、環境分離)
-- Terraform モジュール (`cloud-run`, `firestore`, `storage`, `iam`)
-- Staging 環境の Terraform 定義 (`terraform/environments/staging/`)
+- リモートステートバケット作成（Cloud Storage）
+- Terraformプロジェクト初期化（リモートバックエンド設定）
+- 既存WIF stateのリモート移行
+- Terraformモジュール作成（`modules/artifact-registry/`, `modules/iam/`, `modules/cloud-run/`, `modules/storage/`）
+- Artifact Registryリポジトリ作成（`ledger-muse`）
+- Backend APIサービスアカウント作成（`backend-api-staging-sa`）
+- Staging環境Cloud Run初期定義（プレースホルダーイメージ）
 
 **レビューポイント**:
-- Terraform モジュール設計の再利用性
-- State 管理の安全性
+- Terraformモジュール設計の再利用性
+- State管理の安全性（ローカル→リモート移行）
+- 既存WIFリソースとの統合
 - 環境分離の適切性
 
 **作業時間見積**: 8-10 時間
 **レビュー時間見積**: 2 時間
 
 **注意事項**:
-- `terraform plan` の結果を PR に含める
-- Staging 環境でのテストを完了してからマージ
+- 既存のWIF（`terraform/wif/`）がデプロイ済みであることを前提
+- `terraform plan`の結果をPRに含める
+- Staging環境でのテストを完了してからマージ
+- GitHub Secrets（WIF_PROVIDER、WIF_SERVICE_ACCOUNT）の設定が必要
 
 ---
 
-#### PR #4: `setup/local-dev-environment`
-**タスク**: 4.1, 4.2, 4.3, 4.4, 4.5
+#### PR #3: `setup/ci-quality-gate`
+**タスク**: 3.1, 3.2
+**依存関係**: PR #1 (`setup/project-structure`)
+**サイズ**: Small
+**並列実行**: ❌ (PR #1 に依存、PR #2 と並列可能)
+
+**成果物**:
+- `.github/workflows/ci.yml` (品質ゲート部分のみ)
+  - Frontend: ESLint、TypeScript、Vitest
+  - Backend: golangci-lint、Test、Build
+- Firebase App Hosting の GitHub 統合
+- ブランチ保護ルール設定
+
+**レビューポイント**:
+- CI/CD パイプラインの品質ゲートの妥当性
+- Firebase App Hosting統合の設定
+
+**作業時間見積**: 4-6 時間
+**レビュー時間見積**: 1 時間
+
+---
+
+#### PR #4: `setup/cloud-run-deploy`
+**タスク**: 4.1
+**依存関係**: PR #2 (`setup/terraform-infrastructure`), PR #3 (`setup/ci-quality-gate`)
+**サイズ**: Small
+**並列実行**: ❌ (PR #2, #3 に依存)
+
+**成果物**:
+- `.github/workflows/ci.yml`にCloud Runデプロイジョブを追加
+  - Workload Identity Federation認証
+  - Dockerイメージビルド
+  - Artifact Registryプッシュ
+  - Cloud Runデプロイ（PR preview、Staging、Production）
+  - デプロイ後ヘルスチェック
+
+**レビューポイント**:
+- デプロイ設定のセキュリティ
+- PR previewデプロイフロー
+- Cloud Run設定の妥当性
+
+**作業時間見積**: 4-6 時間
+**レビュー時間見積**: 1 時間
+
+**注意事項**:
+- GitHub Secretsが設定済みであること（PR #2で設定）
+- PR作成時にデプロイが成功することを確認
+
+---
+
+#### PR #5: `setup/local-dev-environment`
+**タスク**: 5.1, 5.2, 5.3, 5.4, 5.5
 **依存関係**: PR #1 (`setup/project-structure`)
 **サイズ**: Medium
 **並列実行**: ❌ (PR #1 に依存、PR #3 と並列可能)
@@ -178,9 +214,9 @@
 
 ### Phase 1: Hello World デプロイ (1 PR)
 
-#### PR #5: `feature/hello-world-deployment`
-**タスク**: 5.1, 5.2, 5.3, 6.1, 6.2, 6.3, 6.4, 7.1, 7.2, 7.3
-**依存関係**: PR #2, PR #4
+#### PR #6: `feature/hello-world-deployment`
+**タスク**: 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 8.1, 8.2, 8.3
+**依存関係**: PR #3, PR #5
 **サイズ**: Medium
 **並列実行**: ❌
 
@@ -211,9 +247,9 @@
 
 ### Phase 2: 認証機能実装 (2 PRs)
 
-#### PR #6: `feature/auth-infrastructure`
-**タスク**: 8.1, 8.2
-**依存関係**: PR #3, PR #5
+#### PR #7: `feature/auth-infrastructure`
+**タスク**: 9.1, 9.2
+**依存関係**: PR #2, PR #6
 **サイズ**: Small
 **並列実行**: ✅ (PR #7 と並列可能)
 
@@ -235,9 +271,9 @@
 
 ---
 
-#### PR #7: `feature/authentication`
-**タスク**: 9.1, 9.2, 9.3, 9.4, 9.5, 10.1, 10.2, 10.3, 11.1, 11.2, 11.3
-**依存関係**: PR #6
+#### PR #8: `feature/authentication`
+**タスク**: 10.1, 10.2, 10.3, 10.4, 10.5, 11.1, 11.2, 11.3, 12.1, 12.2, 12.3
+**依存関係**: PR #7
 **サイズ**: Large
 **並列実行**: ❌ (PR #6 に依存)
 
@@ -272,9 +308,9 @@
 
 ### Phase 3: 取引CRUD機能実装 (4 PRs)
 
-#### PR #8: `feature/backend-transaction-domain`
-**タスク**: 12.1, 12.2, 12.3, 13.1, 13.2, 13.3
-**依存関係**: PR #7
+#### PR #9: `feature/backend-transaction-domain`
+**タスク**: 13.1, 13.2, 13.3, 14.1, 14.2, 14.3
+**依存関係**: PR #8
 **サイズ**: Medium
 **並列実行**: ✅ (PR #9 と並列可能)
 
@@ -296,14 +332,14 @@
 **レビュー時間見積**: 2 時間
 
 **注意事項**:
-- PR #9 と並列実行時、Backend コードベースのマージ競合に注意
+- PR #10 と並列実行時、Backend コードベースのマージ競合に注意
 - Firestore Emulator でのテスト実施
 
 ---
 
-#### PR #9: `feature/backend-category`
-**タスク**: 15.1, 15.2, 15.3, 15.4
-**依存関係**: PR #7
+#### PR #10: `feature/backend-category`
+**タスク**: 16.1, 16.2, 16.3, 16.4
+**依存関係**: PR #8
 **サイズ**: Small
 **並列実行**: ✅ (PR #8 と並列可能)
 
@@ -322,9 +358,9 @@
 
 ---
 
-#### PR #10: `feature/backend-transaction-api`
-**タスク**: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 17.1
-**依存関係**: PR #8, PR #9
+#### PR #11: `feature/backend-transaction-api`
+**タスク**: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 18.1
+**依存関係**: PR #9, PR #10
 **サイズ**: Medium
 **並列実行**: ❌ (PR #8, #9 に依存)
 
@@ -352,9 +388,9 @@
 
 ---
 
-#### PR #11: `feature/frontend-transaction-ui`
-**タスク**: 16.1, 16.2, 16.3, 16.4, 16.5, 17.2, 17.3
-**依存関係**: PR #10
+#### PR #12: `feature/frontend-transaction-ui`
+**タスク**: 17.1, 17.2, 17.3, 17.4, 17.5, 18.2, 18.3
+**依存関係**: PR #11
 **サイズ**: Large
 **並列実行**: ❌ (PR #10 に依存)
 
@@ -388,9 +424,9 @@
 
 ### Phase 4: レシートOCR機能実装 (5 PRs)
 
-#### PR #12: `feature/receipt-infrastructure`
-**タスク**: 18.1, 18.2, 22.1, 22.2, 22.3
-**依存関係**: PR #3
+#### PR #13: `feature/receipt-infrastructure`
+**タスク**: 19.1, 19.2, 23.1, 23.2, 23.3
+**依存関係**: PR #2
 **サイズ**: Medium
 **並列実行**: ✅ (PR #13 と並列可能)
 
@@ -415,9 +451,9 @@
 
 ---
 
-#### PR #13: `feature/receipt-domain-storage`
-**タスク**: 19.1, 19.2, 20.1, 20.2
-**依存関係**: PR #7
+#### PR #14: `feature/receipt-domain-storage`
+**タスク**: 20.1, 20.2, 21.1, 21.2
+**依存関係**: PR #8
 **サイズ**: Small
 **並列実行**: ✅ (PR #12 と並列可能)
 
@@ -436,9 +472,9 @@
 
 ---
 
-#### PR #14: `feature/receipt-upload-api`
-**タスク**: 21.1, 21.2, 21.3, 21.4
-**依存関係**: PR #12, PR #13
+#### PR #15: `feature/receipt-upload-api`
+**タスク**: 22.1, 22.2, 22.3, 22.4
+**依存関係**: PR #13, PR #14
 **サイズ**: Medium
 **並列実行**: ❌ (PR #12, #13 に依存)
 
@@ -464,9 +500,9 @@
 
 ---
 
-#### PR #15: `feature/ocr-worker`
-**タスク**: 23.1, 23.2, 23.3, 24.1, 24.2, 24.3, 24.4, 26.1, 26.2
-**依存関係**: PR #14
+#### PR #16: `feature/ocr-worker`
+**タスク**: 24.1, 24.2, 24.3, 25.1, 25.2, 25.3, 25.4, 27.1, 27.2
+**依存関係**: PR #15
 **サイズ**: Large
 **並列実行**: ❌ (PR #14 に依存)
 
@@ -499,9 +535,9 @@
 
 ---
 
-#### PR #16: `feature/receipt-ui`
-**タスク**: 25.1, 25.2, 25.3, 25.4, 26.3
-**依存関係**: PR #15
+#### PR #17: `feature/receipt-ui`
+**タスク**: 26.1, 26.2, 26.3, 26.4, 27.3
+**依存関係**: PR #16
 **サイズ**: Medium
 **並列実行**: ❌ (PR #15 に依存)
 
@@ -530,9 +566,9 @@
 
 ### Phase 5: ナレッジ機能（メモ・タグ）実装 (1 PR)
 
-#### PR #17: `feature/memo-knowledge`
-**タスク**: 27.1, 27.2, 27.3, 27.4, 28.1, 28.2, 28.3, 28.4, 29.1, 29.2, 29.3
-**依存関係**: PR #11
+#### PR #18: `feature/memo-knowledge`
+**タスク**: 28.1, 28.2, 28.3, 28.4, 29.1, 29.2, 29.3, 29.4, 30.1, 30.2, 30.3
+**依存関係**: PR #12
 **サイズ**: Medium
 **並列実行**: ❌ (PR #11 に依存)
 
@@ -566,9 +602,9 @@
 
 ### Phase 6: 検索・レポート機能実装 (2 PRs)
 
-#### PR #18: `feature/search-functionality`
-**タスク**: 30.1, 30.2, 32.1, 32.2, 33.1, 33.3
-**依存関係**: PR #17
+#### PR #19: `feature/search-functionality`
+**タスク**: 31.1, 31.2, 33.1, 33.2, 34.1, 34.3
+**依存関係**: PR #18
 **サイズ**: Medium
 **並列実行**: ✅ (PR #19 と並列可能)
 
@@ -590,13 +626,13 @@
 **レビュー時間見積**: 2.5 時間
 
 **注意事項**:
-- PR #19 と並列実行時、Backend コードベースのマージ競合に注意
+- PR #20 と並列実行時、Backend コードベースのマージ競合に注意
 
 ---
 
-#### PR #19: `feature/report-functionality`
-**タスク**: 31.1, 31.2, 32.3, 32.4, 33.2, 33.4
-**依存関係**: PR #17
+#### PR #20: `feature/report-functionality`
+**タスク**: 32.1, 32.2, 33.3, 33.4, 34.2, 34.4
+**依存関係**: PR #18
 **サイズ**: Medium
 **並列実行**: ✅ (PR #18 と並列可能)
 
@@ -629,9 +665,9 @@
 
 ### Phase 7: 運用・監視機能実装 (4 PRs)
 
-#### PR #20: `ops/logging-monitoring`
-**タスク**: 34.1, 34.2, 34.3, 34.4
-**依存関係**: PR #10 (API ログ記録の拡張)
+#### PR #21: `ops/logging-monitoring`
+**タスク**: 35.1, 35.2, 35.3, 35.4
+**依存関係**: PR #11 (API ログ記録の拡張)
 **サイズ**: Medium
 **並列実行**: ✅ (PR #21 と並列可能)
 
@@ -651,9 +687,9 @@
 
 ---
 
-#### PR #21: `ops/security-hardening`
-**タスク**: 35.1, 35.2, 35.3, 35.4, 35.5
-**依存関係**: PR #7
+#### PR #22: `ops/security-hardening`
+**タスク**: 36.1, 36.2, 36.3, 36.4, 36.5
+**依存関係**: PR #8
 **サイズ**: Medium
 **並列実行**: ✅ (PR #20 と並列可能)
 
@@ -678,9 +714,9 @@
 
 ---
 
-#### PR #22: `ops/performance-optimization`
-**タスク**: 36.1, 36.2, 36.3
-**依存関係**: PR #19 (レポート機能の最適化)
+#### PR #23: `ops/performance-optimization`
+**タスク**: 37.1, 37.2, 37.3
+**依存関係**: PR #20 (レポート機能の最適化)
 **サイズ**: Small
 **並列実行**: ❌ (PR #19 に依存)
 
@@ -703,9 +739,9 @@
 
 ---
 
-#### PR #23: `ops/production-setup`
-**タスク**: 37.1, 37.2, 37.3
-**依存関係**: PR #20, PR #21, PR #22
+#### PR #24: `ops/production-setup`
+**タスク**: 38.1, 38.2, 38.3
+**依存関係**: PR #21, PR #22, PR #23
 **サイズ**: Medium
 **並列実行**: ❌ (すべての運用機能に依存)
 
@@ -734,50 +770,53 @@
 
 ### Group 1 (Phase 0, 並列実行可能)
 - **PR #1**: `setup/project-structure` (先行実行)
-- **PR #3**: `setup/terraform-infrastructure` (PR #1 と並列)
+- **PR #2**: `setup/terraform-infrastructure` (PR #1 と並列)
 
 ### Group 2 (Phase 0, Group 1 依存)
-- **PR #2**: `setup/ci-cd-pipeline` (PR #1 後)
-- **PR #4**: `setup/local-dev-environment` (PR #1 後)
+- **PR #3**: `setup/ci-quality-gate` (PR #1 後、PR #2 と並列可能)
+- **PR #5**: `setup/local-dev-environment` (PR #1 後、PR #2, #3 と並列可能)
 
-### Group 3 (Phase 1)
-- **PR #5**: `feature/hello-world-deployment` (PR #2, #4 後)
+### Group 3 (Phase 0, Group 2 依存)
+- **PR #4**: `setup/cloud-run-deploy` (PR #2, #3 後)
 
-### Group 4 (Phase 2)
-- **PR #6**: `feature/auth-infrastructure` (PR #3, #5 後)
-- **PR #7**: `feature/authentication` (PR #6 後)
+### Group 4 (Phase 1)
+- **PR #6**: `feature/hello-world-deployment` (PR #3, #5 後)
 
-### Group 5 (Phase 3, 並列実行可能)
-- **PR #8**: `feature/backend-transaction-domain` (PR #7 後)
-- **PR #9**: `feature/backend-category` (PR #7 後, PR #8 と並列)
+### Group 5 (Phase 2)
+- **PR #7**: `feature/auth-infrastructure` (PR #2, #6 後)
+- **PR #8**: `feature/authentication` (PR #7 後)
 
-### Group 6 (Phase 3)
-- **PR #10**: `feature/backend-transaction-api` (PR #8, #9 後)
-- **PR #11**: `feature/frontend-transaction-ui` (PR #10 後)
+### Group 6 (Phase 3, 並列実行可能)
+- **PR #9**: `feature/backend-transaction-domain` (PR #8 後)
+- **PR #10**: `feature/backend-category` (PR #8 後, PR #9 と並列)
 
-### Group 7 (Phase 4, 並列実行可能)
-- **PR #12**: `feature/receipt-infrastructure` (PR #3 後)
-- **PR #13**: `feature/receipt-domain-storage` (PR #7 後, PR #12 と並列)
+### Group 7 (Phase 3)
+- **PR #11**: `feature/backend-transaction-api` (PR #9, #10 後)
+- **PR #12**: `feature/frontend-transaction-ui` (PR #11 後)
 
-### Group 8 (Phase 4)
-- **PR #14**: `feature/receipt-upload-api` (PR #12, #13 後)
-- **PR #15**: `feature/ocr-worker` (PR #14 後)
-- **PR #16**: `feature/receipt-ui` (PR #15 後)
+### Group 8 (Phase 4, 並列実行可能)
+- **PR #13**: `feature/receipt-infrastructure` (PR #2 後)
+- **PR #14**: `feature/receipt-domain-storage` (PR #8 後, PR #13 と並列)
 
-### Group 9 (Phase 5)
-- **PR #17**: `feature/memo-knowledge` (PR #11 後)
+### Group 9 (Phase 4)
+- **PR #15**: `feature/receipt-upload-api` (PR #13, #14 後)
+- **PR #16**: `feature/ocr-worker` (PR #15 後)
+- **PR #17**: `feature/receipt-ui` (PR #16 後)
 
-### Group 10 (Phase 6, 並列実行可能)
-- **PR #18**: `feature/search-functionality` (PR #17 後)
-- **PR #19**: `feature/report-functionality` (PR #17 後, PR #18 と並列)
+### Group 10 (Phase 5)
+- **PR #18**: `feature/memo-knowledge` (PR #12 後)
 
-### Group 11 (Phase 7, 並列実行可能)
-- **PR #20**: `ops/logging-monitoring` (PR #10 後)
-- **PR #21**: `ops/security-hardening` (PR #7 後, PR #20 と並列)
+### Group 11 (Phase 6, 並列実行可能)
+- **PR #19**: `feature/search-functionality` (PR #18 後)
+- **PR #20**: `feature/report-functionality` (PR #18 後, PR #19 と並列)
 
-### Group 12 (Phase 7)
-- **PR #22**: `ops/performance-optimization` (PR #19 後)
-- **PR #23**: `ops/production-setup` (PR #20, #21, #22 後)
+### Group 12 (Phase 7, 並列実行可能)
+- **PR #21**: `ops/logging-monitoring` (PR #11 後)
+- **PR #22**: `ops/security-hardening` (PR #8 後, PR #21 と並列)
+
+### Group 13 (Phase 7)
+- **PR #23**: `ops/performance-optimization` (PR #20 後)
+- **PR #24**: `ops/production-setup` (PR #21, #22, #23 後)
 
 ---
 
@@ -786,43 +825,45 @@
 ```
 Phase 0:
   PR #1 (setup/project-structure)
-    ├─→ PR #2 (setup/ci-cd-pipeline)
-    └─→ PR #4 (setup/local-dev-environment)
+    ├─→ PR #3 (setup/ci-quality-gate)
+    └─→ PR #5 (setup/local-dev-environment)
 
-  PR #3 (setup/terraform-infrastructure) [並列実行可能]
+  PR #2 (setup/terraform-infrastructure) [並列実行可能、PR #1と並列]
+
+  PR #2, #3 → PR #4 (setup/cloud-run-deploy)
 
 Phase 1:
-  PR #2, #4 → PR #5 (feature/hello-world-deployment)
+  PR #3, #5 → PR #6 (feature/hello-world-deployment)
 
 Phase 2:
-  PR #3, #5 → PR #6 (feature/auth-infrastructure)
-             → PR #7 (feature/authentication)
+  PR #2, #6 → PR #7 (feature/auth-infrastructure)
+             → PR #8 (feature/authentication)
 
 Phase 3:
-  PR #7 → PR #8 (feature/backend-transaction-domain) [並列実行可能]
-       → PR #9 (feature/backend-category) [並列実行可能]
-       → PR #10 (feature/backend-transaction-api)
-       → PR #11 (feature/frontend-transaction-ui)
+  PR #8 → PR #9 (feature/backend-transaction-domain) [並列実行可能]
+       → PR #10 (feature/backend-category) [並列実行可能]
+       → PR #11 (feature/backend-transaction-api)
+       → PR #12 (feature/frontend-transaction-ui)
 
 Phase 4:
-  PR #3 → PR #12 (feature/receipt-infrastructure) [並列実行可能]
-  PR #7 → PR #13 (feature/receipt-domain-storage) [並列実行可能]
-  PR #12, #13 → PR #14 (feature/receipt-upload-api)
-             → PR #15 (feature/ocr-worker)
-             → PR #16 (feature/receipt-ui)
+  PR #2 → PR #13 (feature/receipt-infrastructure) [並列実行可能]
+  PR #8 → PR #14 (feature/receipt-domain-storage) [並列実行可能]
+  PR #13, #14 → PR #15 (feature/receipt-upload-api)
+             → PR #16 (feature/ocr-worker)
+             → PR #17 (feature/receipt-ui)
 
 Phase 5:
-  PR #11 → PR #17 (feature/memo-knowledge)
+  PR #12 → PR #18 (feature/memo-knowledge)
 
 Phase 6:
-  PR #17 → PR #18 (feature/search-functionality) [並列実行可能]
-        → PR #19 (feature/report-functionality) [並列実行可能]
+  PR #18 → PR #19 (feature/search-functionality) [並列実行可能]
+        → PR #20 (feature/report-functionality) [並列実行可能]
 
 Phase 7:
-  PR #10 → PR #20 (ops/logging-monitoring) [並列実行可能]
-  PR #7 → PR #21 (ops/security-hardening) [並列実行可能]
-  PR #19 → PR #22 (ops/performance-optimization)
-  PR #20, #21, #22 → PR #23 (ops/production-setup)
+  PR #11 → PR #21 (ops/logging-monitoring) [並列実行可能]
+  PR #8 → PR #22 (ops/security-hardening) [並列実行可能]
+  PR #20 → PR #23 (ops/performance-optimization)
+  PR #21, #22, #23 → PR #24 (ops/production-setup)
 ```
 
 ---
@@ -833,9 +874,9 @@ Phase 7:
 
 以下の PR は Large サイズであり、レビュー時間を十分に確保する必要があります:
 
-- **PR #7** (`feature/authentication`): 認証機能が大規模。レビュー時間 3 時間を見積もる。
-- **PR #11** (`feature/frontend-transaction-ui`): Frontend UI が複雑。UI/UX レビューが必要。
-- **PR #15** (`feature/ocr-worker`): OCR 処理が複雑。統合テストの安定性に注意。
+- **PR #8** (`feature/authentication`): 認証機能が大規模。レビュー時間 3 時間を見積もる。
+- **PR #12** (`feature/frontend-transaction-ui`): Frontend UI が複雑。UI/UX レビューが必要。
+- **PR #16** (`feature/ocr-worker`): OCR 処理が複雑。統合テストの安定性に注意。
 
 ### 2. 依存関係の複雑性
 
@@ -846,12 +887,12 @@ Phase 7:
 
 以下の PR 組み合わせは並列実行可能ですが、マージ時の競合に注意:
 
-- **PR #8 と PR #9**: 両方が Backend コードベースを変更するため、マージ時の競合に注意。
-- **PR #18 と PR #19**: 同様に Backend コードベースの競合に注意。
+- **PR #9 と PR #10**: 両方が Backend コードベースを変更するため、マージ時の競合に注意。
+- **PR #19 と PR #20**: 同様に Backend コードベースの競合に注意。
 
 **競合回避策**:
 - 並列実行時は、頻繁に `main` ブランチを取り込む (リベース)
-- マージ順序を決めておく (例: PR #8 → PR #9)
+- マージ順序を決めておく (例: PR #9 → PR #10)
 
 ### 4. テストの独立性
 
@@ -866,11 +907,11 @@ Phase 7:
 
 以下の PR では Terraform 変更が含まれるため、`terraform plan` の結果を PR に含める:
 
-- PR #3: `setup/terraform-infrastructure`
-- PR #12: `feature/receipt-infrastructure`
-- PR #20: `ops/logging-monitoring`
-- PR #21: `ops/security-hardening`
-- PR #23: `ops/production-setup`
+- PR #2: `setup/terraform-infrastructure`
+- PR #13: `feature/receipt-infrastructure`
+- PR #21: `ops/logging-monitoring`
+- PR #22: `ops/security-hardening`
+- PR #24: `ops/production-setup`
 
 **Terraform ワークフロー**:
 1. `terraform plan` の結果を PR コメントに貼り付け
@@ -880,22 +921,22 @@ Phase 7:
 
 ### 6. デプロイの安全性
 
-- **PR #5, #7, #10, #14, #15, #23** はデプロイを伴うため、Staging 環境での動作確認が必須。
-- **PR #23** (Production セットアップ) は、手動承認ゲートを含む。
+- **PR #6, #8, #11, #15, #16, #24** はデプロイを伴うため、Staging 環境での動作確認が必須。
+- **PR #24** (Production セットアップ) は、手動承認ゲートを含む。
 
 ### 7. パフォーマンステストの実施タイミング
 
-- **PR #22** (パフォーマンス最適化) は、**PR #19** (レポート機能) 完了後に実施。
+- **PR #23** (パフォーマンス最適化) は、**PR #20** (レポート機能) 完了後に実施。
 - パフォーマンステストで基準未達の場合、改善作業が必要。
 
 ### 8. セキュリティレビュー
 
 以下の PR はセキュリティレビューを重点的に実施:
 
-- **PR #7**: 認証機能 (JWT 検証, セッション管理)
-- **PR #14**: ファイルアップロード (バリデーション, アップロードパス)
-- **PR #17**: XSS 対策 (DOMPurify サニタイズ)
-- **PR #21**: セキュリティ強化 (HTTPS, KMS, レート制限)
+- **PR #8**: 認証機能 (JWT 検証, セッション管理)
+- **PR #15**: ファイルアップロード (バリデーション, アップロードパス)
+- **PR #18**: XSS 対策 (DOMPurify サニタイズ)
+- **PR #22**: セキュリティ強化 (HTTPS, KMS, レート制限)
 
 ---
 
@@ -907,18 +948,19 @@ CI/CD とローカル環境がないと後続作業が非効率になるため�
 
 **実施順序**:
 1. **PR #1** (`setup/project-structure`) を先行実行
-2. **PR #3** (`setup/terraform-infrastructure`) を並列実行
-3. **PR #2** (`setup/ci-cd-pipeline`) を PR #1 完了後に実行
-4. **PR #4** (`setup/local-dev-environment`) を PR #1 完了後に実行
+2. **PR #2** (`setup/terraform-infrastructure`) を並列実行
+3. **PR #3** (`setup/ci-quality-gate`) を PR #1 完了後に実行
+4. **PR #5** (`setup/local-dev-environment`) を PR #1 完了後に実行
+5. **PR #4** (`setup/cloud-run-deploy`) を PR #2, #3 完了後に実行
 
 ### 2. 並列実行を積極活用
 
 Group ごとに複数のブランチで同時作業し、開発期間を短縮する。
 
 **並列実行例**:
-- **Group 5**: PR #8 と PR #9 を並列実行
-- **Group 10**: PR #18 と PR #19 を並列実行
-- **Group 11**: PR #20 と PR #21 を並列実行
+- **Group 6**: PR #9 と PR #10 を並列実行
+- **Group 11**: PR #19 と PR #20 を並列実行
+- **Group 12**: PR #21 と PR #22 を並列実行
 
 ### 3. PR サイズに応じてレビュー時間を確保
 
@@ -996,7 +1038,7 @@ Large PR は 2-3 時間のレビュー時間を見積もる。
 
 | Phase | PR 数 | 合計作業時間 | 合計レビュー時間 |
 |-------|------|-------------|----------------|
-| Phase 0 | 4 | 24-32 時間 | 5.5 時間 |
+| Phase 0 | 5 | 28-38 時間 | 6.5 時間 |
 | Phase 1 | 1 | 8-10 時間 | 2 時間 |
 | Phase 2 | 2 | 16-22 時間 | 4 時間 |
 | Phase 3 | 4 | 40-50 時間 | 9.5 時間 |
@@ -1004,11 +1046,11 @@ Large PR は 2-3 時間のレビュー時間を見積もる。
 | Phase 5 | 1 | 12-14 時間 | 2.5 時間 |
 | Phase 6 | 2 | 22-26 時間 | 5 時間 |
 | Phase 7 | 4 | 38-46 時間 | 9.5 時間 |
-| **合計** | **23** | **208-260 時間** | **49.5 時間** |
+| **合計** | **24** | **212-270 時間** | **51.5 時間** |
 
 **開発期間見積** (1人で作業する場合):
-- **最短**: 208 時間 ÷ 8 時間/日 = **26 営業日 (約 5.5 週間)**
-- **最長**: 260 時間 ÷ 8 時間/日 = **32.5 営業日 (約 6.5 週間)**
+- **最短**: 212 時間 ÷ 8 時間/日 = **26.5 営業日 (約 5.5 週間)**
+- **最長**: 270 時間 ÷ 8 時間/日 = **33.75 営業日 (約 6.75 週間)**
 
 **開発期間見積** (並列実行を活用する場合):
 - 並列実行可能な PR を同時に作業することで、**約 4-5 週間** に短縮可能
@@ -1017,7 +1059,7 @@ Large PR は 2-3 時間のレビュー時間を見積もる。
 
 ## まとめ
 
-この計画で **23 個の PR** に分割され、**並列実行可能な箇所** を最大限活用することで、開発期間を短縮できます。各 PR のレビューポイントを明確にし、品質を担保しながら効率的に進めてください。
+この計画で **24 個の PR** に分割され、**並列実行可能な箇所** を最大限活用することで、開発期間を短縮できます。各 PR のレビューポイントを明確にし、品質を担保しながら効率的に進めてください。
 
 **重要なポイント**:
 1. **Phase 0** を最優先で完了する

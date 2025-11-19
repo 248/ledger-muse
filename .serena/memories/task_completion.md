@@ -1,3 +1,1 @@
-- 現状テスト/ビルド/デプロイ手順は未設定。実装開始までは仕様更新やドキュメント修正のみ想定。
-- 作業完了時は変更内容を簡潔に共有し、関連スペック（`.kiro/specs/`）への影響有無を確認する。
-- 将来コマンドが整備され次第（lint/test/format/terraform plan等）、完了チェックに組み込む。
+2025-11-20: Task 2.2 (Terraform project init + WIF state migration) completed. Added shared backend/provider definitions (`terraform/backend.tf`, `terraform/provider.tf`), created `terraform/environments/{staging,prod}` skeleton with README guidance, added `terraform/wif/backend.tf`, updated docs (`docs/terraform/{README,wif}.md`), and added guardrail test `tests/terraform-remote-state.test.sh`. `.kiro/specs/.../tasks.md` marked with memo covering these changes.

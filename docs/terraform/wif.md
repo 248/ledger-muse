@@ -21,10 +21,18 @@ cd terraform/wif
 # 個別変数はサンプルをコピーして編集。
 cp terraform.tfvars.example terraform.tfvars
 
-terraform init
+# backend.tf で GCS バケットを指定済み
+terraform init -migrate-state
 terraform plan  -var-file=../common.auto.tfvars
 terraform apply -var-file=../common.auto.tfvars
 ```
+
+### 既存 state を GCS に移行する手順
+1. `terraform/bootstrap` を完了し、`ledger-muse-terraform-state` バケットが存在することを確認（`${project_id}-terraform-state` 規則）
+2. `terraform/wif/backend.tf` を用意（本リポジトリでは `prefix = "wif"` で配置済み）
+3. `terraform init -migrate-state` を実行すると、ローカル `terraform.tfstate` が `gs://ledger-muse-terraform-state/wif/default.tfstate` にコピーされる
+4. `gsutil ls gs://ledger-muse-terraform-state/wif/` で state が作成されていることを確認
+5. 以降の plan/apply は runner SA をインパーソネートして実行（`export GOOGLE_IMPERSONATE_SERVICE_ACCOUNT=...`）
 
 エラー回避のヒント:
 - Workload Identity Provider の `attribute_condition` は `attribute.repository` によるリポジトリ限定を設定済み。`github_repository` を存在する `owner/repo` 形式で指定すること。

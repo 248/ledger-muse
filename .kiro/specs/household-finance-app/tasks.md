@@ -101,7 +101,7 @@ Phase 0では、以下の3つの基盤を構築します：
     - Terraform Runner 専用 SA モジュール (`terraform/iam-runner`) とドキュメントを追加し、runner を `state_admin_members` に追加して `GOOGLE_IMPERSONATE_SERVICE_ACCOUNT` で Terraform を実行する運用を整理。
   - _Requirements: 17.1, 17.2_
 
-- [ ] 2.2 Terraform プロジェクト初期化とWIF state移行
+- [x] 2.2 Terraform プロジェクト初期化とWIF state移行
   - **前提条件**: タスク2.1完了、既存WIF（`terraform/wif/`）がデプロイ済み
   - Terraform バージョン指定（v1.9.x）、`terraform/provider.tf` 作成（既存の場合はスキップ）
   - 環境分離構造作成（`terraform/environments/staging/`, `terraform/environments/prod/`）
@@ -138,6 +138,10 @@ Phase 0では、以下の3つの基盤を構築します：
     - `terraform init` が成功、"Successfully configured the backend" メッセージ確認
     - `gsutil ls gs://{project-id}-terraform-state/wif/` でstateファイル確認
     - `terraform state list` で既存リソースがリストされることを確認
+  - **メモ (2025-11-20)**:
+    - `terraform/backend.tf` と `terraform/provider.tf` を追加し、GCS backend (`ledger-muse-478602-terraform-state/global`) と Terraform 1.9 系の required_version を共通化。
+    - `terraform/environments/{staging,prod}` ディレクトリを新設し、今後の環境別 root モジュールの置き場とする README を配置。
+    - `terraform/wif/backend.tf` を追加し `terraform init -migrate-state` で GCS backend に移行するドキュメント (`docs/terraform/wif.md`) とテスト (`tests/terraform-remote-state.test.sh`) を更新。
   - _Requirements: 17.1, 17.2, 17.3_
 
 - [ ] 2.3 (P) Terraform モジュール作成（基本リソース）

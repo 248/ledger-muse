@@ -7,6 +7,9 @@
 - `terraform/common.auto.tfvars` に `project_id` / `region` を設定（`common.auto.tfvars.example` をコピーして編集）
 - `terraform init/plan/apply` 実行時は `-var-file=../common.auto.tfvars` を添付
 
+### 環境ディレクトリ
+`terraform/environments/{staging,prod}` は環境ごとの root モジュール置き場です。`terraform/backend.tf` / `provider.tf` をコピーして GCS backend + provider を揃え、`terraform -chdir=terraform/environments/<env>` で plan/apply を実行します。
+
 ## 実行順序
 1) **リモートステートバケット (Bootstrap)**  
    - 目的: GCS に Terraform state を置くためのバケット作成  

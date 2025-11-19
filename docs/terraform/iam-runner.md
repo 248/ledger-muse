@@ -30,14 +30,14 @@ terraform apply -var-file=../common.auto.tfvars
 ### バケット権限への反映（具体的な手順）
 1. runner のメールを取得  
    ```bash
-   terraform -chdir=terraform/iam-runner output -raw service_account_email
-   # 例: terraform-runner@ledger-muse-478602.iam.gserviceaccount.com
+  terraform -chdir=terraform/iam-runner output -raw service_account_email
+  # 例: terraform-runner@ledger-muse.iam.gserviceaccount.com
    ```
 2. `terraform/bootstrap/terraform.tfvars` に追記  
    ```hcl
    state_admin_members = [
      "user:あなたのメール",
-     "serviceAccount:terraform-runner@ledger-muse-478602.iam.gserviceaccount.com",
+    "serviceAccount:terraform-runner@ledger-muse.iam.gserviceaccount.com",
    ]
    ```
 3. bootstrap を再適用（state バケットに権限付与）  

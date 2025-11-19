@@ -130,6 +130,50 @@ resource "google_artifact_registry_repository" "docker_repo" {
 
 **用途**: CI/CDパイプラインでビルドしたDockerイメージの保存先
 
+`modules/artifact-registry/variables.tf`:
+
+```hcl
+variable "project_id" {
+  description = "GCP Project ID"
+  type        = string
+}
+
+variable "repository_id" {
+  description = "Artifact Registry repository ID"
+  type        = string
+}
+
+variable "region" {
+  description = "Region for Artifact Registry"
+  type        = string
+}
+
+variable "description" {
+  description = "Description of the repository"
+  type        = string
+  default     = "Docker repository for Ledger Muse"
+}
+```
+
+`modules/artifact-registry/outputs.tf`:
+
+```hcl
+output "repository_id" {
+  value       = google_artifact_registry_repository.docker_repo.repository_id
+  description = "Artifact Registry repository ID"
+}
+
+output "repository_url" {
+  value       = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}"
+  description = "Full URL of the Artifact Registry repository"
+}
+
+output "repository_name" {
+  value       = google_artifact_registry_repository.docker_repo.name
+  description = "Full resource name of the Artifact Registry repository"
+}
+```
+
 #### 2. Cloud Runモジュール
 
 ```hcl
@@ -159,6 +203,83 @@ resource "google_cloud_run_service" "api" {
 ```
 
 **前提条件**: Artifact Registryにイメージが存在すること
+
+`modules/cloud-run/variables.tf`:
+
+```hcl
+variable "project_id" {
+  description = "GCP Project ID"
+  type        = string
+}
+
+variable "service_name" {
+  description = "Cloud Run service name"
+  type        = string
+}
+
+variable "region" {
+  description = "Region for Cloud Run service"
+  type        = string
+}
+
+variable "container_image" {
+  description = "Container image URL"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment name (staging, prod)"
+  type        = string
+}
+
+variable "service_account_email" {
+  description = "Service account email for Cloud Run"
+  type        = string
+}
+
+variable "min_instances" {
+  description = "Minimum number of instances"
+  type        = number
+  default     = 0
+}
+
+variable "max_instances" {
+  description = "Maximum number of instances"
+  type        = number
+  default     = 10
+}
+
+variable "memory" {
+  description = "Memory allocation (e.g., 512Mi)"
+  type        = string
+  default     = "512Mi"
+}
+
+variable "cpu" {
+  description = "CPU allocation (e.g., 1)"
+  type        = string
+  default     = "1"
+}
+```
+
+`modules/cloud-run/outputs.tf`:
+
+```hcl
+output "service_url" {
+  value       = google_cloud_run_service.api.status[0].url
+  description = "Cloud Run service URL"
+}
+
+output "service_name" {
+  value       = google_cloud_run_service.api.name
+  description = "Cloud Run service name"
+}
+
+output "service_id" {
+  value       = google_cloud_run_service.api.id
+  description = "Cloud Run service ID"
+}
+```
 
 #### 3. IAMモジュール
 
@@ -194,6 +315,50 @@ resource "google_project_iam_member" "pubsub_publisher" {
 }
 ```
 
+`modules/iam/variables.tf`:
+
+```hcl
+variable "project_id" {
+  description = "GCP Project ID"
+  type        = string
+}
+
+variable "service_account_id" {
+  description = "Service Account ID (not email)"
+  type        = string
+}
+
+variable "service_account_display_name" {
+  description = "Display name for the service account"
+  type        = string
+}
+
+variable "service_account_roles" {
+  description = "List of IAM roles to assign to the service account"
+  type        = list(string)
+  default     = []
+}
+```
+
+`modules/iam/outputs.tf`:
+
+```hcl
+output "service_account_email" {
+  value       = google_service_account.backend_api.email
+  description = "Service account email address"
+}
+
+output "service_account_name" {
+  value       = google_service_account.backend_api.name
+  description = "Service account resource name"
+}
+
+output "service_account_id" {
+  value       = google_service_account.backend_api.account_id
+  description = "Service account ID"
+}
+```
+
 #### 4. Storageモジュール
 
 ```hcl
@@ -217,6 +382,62 @@ resource "google_storage_bucket" "receipts" {
   encryption {
     default_kms_key_name = var.kms_key_name
   }
+}
+```
+
+`modules/storage/variables.tf`:
+
+```hcl
+variable "project_id" {
+  description = "GCP Project ID"
+  type        = string
+}
+
+variable "bucket_name" {
+  description = "Cloud Storage bucket name"
+  type        = string
+}
+
+variable "region" {
+  description = "Region for Cloud Storage bucket"
+  type        = string
+}
+
+variable "force_destroy" {
+  description = "Allow deletion of bucket even if it contains objects"
+  type        = bool
+  default     = false
+}
+
+variable "lifecycle_age_days" {
+  description = "Number of days after which objects are deleted"
+  type        = number
+  default     = 90
+}
+
+variable "kms_key_name" {
+  description = "KMS key name for encryption (optional)"
+  type        = string
+  default     = null
+}
+```
+
+`modules/storage/outputs.tf`:
+
+```hcl
+output "bucket_name" {
+  value       = google_storage_bucket.receipts.name
+  description = "Cloud Storage bucket name"
+}
+
+output "bucket_url" {
+  value       = google_storage_bucket.receipts.url
+  description = "Cloud Storage bucket URL"
+}
+
+output "bucket_id" {
+  value       = google_storage_bucket.receipts.id
+  description = "Cloud Storage bucket ID"
 }
 ```
 
@@ -317,6 +538,112 @@ resource "google_kms_crypto_key" "storage_key" {
   lifecycle {
     prevent_destroy = true
   }
+}
+```
+
+### Staging環境のTerraform定義
+
+`terraform/environments/staging/main.tf`のサンプルコード：
+
+```hcl
+terraform {
+  required_version = ">= 1.6.0"
+
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = ">= 5.0"
+    }
+  }
+
+  backend "gcs" {
+    bucket = "ledger-muse-478602-terraform-state"  # プロジェクトIDに置き換え
+    prefix = "staging"
+  }
+}
+
+provider "google" {
+  project = var.project_id
+  region  = var.region
+}
+
+# Artifact Registry Module
+module "artifact_registry" {
+  source = "../../modules/artifact-registry"
+
+  project_id    = var.project_id
+  repository_id = "ledger-muse"
+  region        = var.region
+}
+
+# IAM Module (Backend API Service Account)
+module "iam" {
+  source = "../../modules/iam"
+
+  project_id                   = var.project_id
+  service_account_id           = "backend-api-staging-sa"
+  service_account_display_name = "Backend API Staging Service Account"
+  service_account_roles        = [
+    "roles/datastore.user",        # Firestore
+    "roles/storage.objectAdmin",   # Cloud Storage
+    "roles/cloudvision.user",      # Cloud Vision API
+    "roles/pubsub.publisher"       # Pub/Sub
+  ]
+}
+
+# Cloud Run Module
+module "cloud_run" {
+  source = "../../modules/cloud-run"
+
+  project_id            = var.project_id
+  service_name          = "ledger-muse-api-staging"
+  region                = var.region
+  container_image       = "gcr.io/cloudrun/hello"  # Placeholder（初回デプロイ後、GitHub Actionsで更新）
+  environment           = "staging"
+  service_account_email = module.iam.service_account_email
+  min_instances         = 0
+  max_instances         = 10
+  memory                = "512Mi"
+  cpu                   = "1"
+
+  depends_on = [
+    module.artifact_registry,
+    module.iam
+  ]
+}
+```
+
+`terraform/environments/staging/variables.tf`:
+
+```hcl
+variable "project_id" {
+  description = "GCP Project ID"
+  type        = string
+}
+
+variable "region" {
+  description = "GCP Region"
+  type        = string
+  default     = "asia-northeast1"
+}
+```
+
+`terraform/environments/staging/outputs.tf`:
+
+```hcl
+output "artifact_registry_repository_url" {
+  value       = module.artifact_registry.repository_url
+  description = "Artifact Registry repository URL"
+}
+
+output "backend_service_account_email" {
+  value       = module.iam.service_account_email
+  description = "Backend API service account email"
+}
+
+output "cloud_run_service_url" {
+  value       = module.cloud_run.service_url
+  description = "Cloud Run service URL"
 }
 ```
 
@@ -481,6 +808,86 @@ resource "google_cloud_run_service_iam_member" "public_access" {
 - **Cloud Run**: マルチリージョンデプロイ + Cloud Load Balancer
 - **Cloud Storage**: マルチリージョンバケット
 - **Firestore**: マルチリージョンレプリケーション
+
+## トラブルシューティング
+
+### Terraform init失敗
+
+**エラー**: `Error: Failed to get existing workspaces`
+
+**対処法**:
+1. GCSバケットが存在するか確認: `gsutil ls gs://{project-id}-terraform-state`
+2. バケットへのアクセス権限を確認: `gsutil iam get gs://{project-id}-terraform-state`
+3. `.terraform/`ディレクトリを削除して再試行: `rm -rf .terraform && terraform init`
+
+### Terraform state移行失敗
+
+**エラー**: `Error: Error acquiring the state lock`
+
+**対処法**:
+1. 他のTerraform processが実行中でないか確認
+2. ロックファイルを強制削除（注意！）: `terraform force-unlock <LOCK_ID>`
+
+### Artifact Registry API無効化エラー
+
+**エラー**: `ERROR: (gcloud.artifacts.repositories.list) PERMISSION_DENIED: Artifact Registry API has not been used`
+
+**対処法**:
+```bash
+gcloud services enable artifactregistry.googleapis.com --project={project-id}
+```
+
+### Cloud Run APIが無効
+
+**エラー**: `Error 403: Cloud Run API has not been used`
+
+**対処法**:
+```bash
+gcloud services enable run.googleapis.com --project={project-id}
+```
+
+### Terraform apply失敗（リソース競合）
+
+**エラー**: `Error: Error creating ... already exists`
+
+**対処法**:
+1. 既存リソースをTerraform管理下にインポート:
+   ```bash
+   terraform import <resource_type>.<resource_name> <resource_id>
+   ```
+2. または、既存リソースを手動削除してから再実行
+
+### Cloud Runデプロイ失敗（GitHub Actions）
+
+**エラー**: GitHub ActionsでCloud Runデプロイが失敗
+
+**対処法**:
+1. GitHub Actionsのログを確認（Actions → 失敗したワークフロー → ログ）
+2. GitHub Secretsが正しく設定されているか確認: `gh secret list`
+3. WIF Service Accountの権限を確認:
+   ```bash
+   gcloud projects get-iam-policy {project-id} \
+     --flatten="bindings[].members" \
+     --filter="bindings.members:serviceAccount:github-deployer@*"
+   ```
+
+### Docker buildエラー（GitHub Actions）
+
+**エラー**: `ERROR: failed to solve: failed to compute cache key`
+
+**対処法**:
+1. Dockerfileの構文を確認
+2. ビルドコンテキストのパスを確認
+3. GitHub Actionsで`docker/setup-buildx-action`が正しく設定されているか確認
+
+### Cloud Run起動失敗（ヘルスチェックタイムアウト）
+
+**エラー**: `Cloud Run error: Container failed to start. Failed to start and then listen on the port defined by the PORT environment variable`
+
+**対処法**:
+1. アプリケーションが環境変数`PORT`を読み込んでいるか確認
+2. ヘルスチェックエンドポイント（`/health`）が正しく実装されているか確認
+3. Cloud Runのログを確認: `gcloud run services logs read {service-name} --region {region}`
 
 ## 参考資料
 

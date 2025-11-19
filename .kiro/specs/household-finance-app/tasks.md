@@ -52,41 +52,119 @@ Phase 0では、以下の3つの基盤を構築します：
 
 **実施目的**: GCPリソース（Artifact Registry、Cloud Run、IAMなど）を構築し、CI/CDデプロイの前提条件を整える。
 
+#### 既存リソースの状況（タスク実施前）
+
+以下のリソースは既にデプロイ済みです：
+
+**Workload Identity Federation（WIF）**
+- **場所**: `terraform/wif/`
+- **stateファイル**: ローカル（`terraform/wif/terraform.tfstate`）
+- **リソース**:
+  - Workload Identity Pool: `github-actions-pool`
+  - OIDC Provider: `github-actions-provider`
+  - Service Account: `github-deployer@{project-id}.iam.gserviceaccount.com`
+  - IAM権限:
+    - `roles/artifactregistry.writer` - Dockerイメージプッシュ用
+    - `roles/run.admin` - Cloud Runデプロイ用
+    - `roles/iam.serviceAccountUser` - SAの使用権限
+
+**未デプロイのリソース（以下のタスクで新規作成）**:
+- Artifact Registry リポジトリ（タスク2.4）
+- Backend API Service Account（タスク2.5）
+- Cloud Run サービス（タスク2.6）
+
+---
+
+#### 実行手順の概要
+
+1. **ステップ1**: リモートステートバケット作成（タスク2.1）
+2. **ステップ2**: 既存WIF stateのリモート移行（タスク2.2）
+3. **ステップ3**: 新しいモジュール作成とデプロイ（タスク2.3-2.6）
+
+---
+
 - [ ] 2.1 リモートステートバケット作成（Terraform Bootstrap）
   - **前提条件**: GCPプロジェクト作成済み、Terraform CLI インストール済み
   - `google_storage_bucket` で Terraform ステート用バケット作成（バージョニング有効化）
   - IAM 最小権限設定（開発者に `roles/storage.objectAdmin`）
   - **成果物**: `{project-id}-terraform-state` バケット
   - **検証方法**: `gsutil ls gs://{project-id}-terraform-state` でバケット確認
+  - **実行コマンド**:
+    ```bash
+    gcloud storage buckets create gs://{project-id}-terraform-state \
+      --location=asia-northeast1 \
+      --uniform-bucket-level-access
+    ```
   - **注意**: 初回のみ手動実行、または bootstrap 用 Terraform で作成
   - _Requirements: 17.1, 17.2_
 
-- [ ] 2.2 Terraform プロジェクト初期化
-  - Terraform バージョン指定（v1.9.x）、`terraform/provider.tf` 作成
-  - リモートステート設定（`terraform/backend.tf`、Cloud Storage バックエンド）
+- [ ] 2.2 Terraform プロジェクト初期化とWIF state移行
+  - **前提条件**: タスク2.1完了、既存WIF（`terraform/wif/`）がデプロイ済み
+  - Terraform バージョン指定（v1.9.x）、`terraform/provider.tf` 作成（既存の場合はスキップ）
   - 環境分離構造作成（`terraform/environments/staging/`, `terraform/environments/prod/`）
-  - 共通変数定義（`terraform/common.auto.tfvars`）
-  - **前提条件**: タスク2.1完了
-  - **成果物**: `terraform/` ディレクトリ構造、`backend.tf`, `provider.tf`, `common.auto.tfvars`
-  - **検証方法**: `terraform init` が成功、リモートステート接続確認
+  - 共通変数定義（`terraform/common.auto.tfvars`）確認
+  - **既存WIF stateのリモート移行**:
+    - `terraform/wif/backend.tf` を作成してGCSバックエンド設定
+    - `terraform init -migrate-state` でローカルstateをリモートに移行
+  - **成果物**:
+    - `terraform/backend.tf` - ルートレベルのバックエンド設定（新規の場合）
+    - `terraform/environments/staging/` - Staging環境ディレクトリ
+    - `terraform/wif/backend.tf` - WIFモジュールのバックエンド設定
+    - リモートバケットに `wif/default.tfstate` が作成される
+  - **実行コマンド**:
+    ```bash
+    # WIFモジュールにbackend.tfを追加
+    cd terraform/wif
+    cat > backend.tf <<'EOF'
+    terraform {
+      backend "gcs" {
+        bucket = "{project-id}-terraform-state"
+        prefix = "wif"
+      }
+    }
+    EOF
+
+    # stateをリモートに移行
+    terraform init -migrate-state
+    # "Successfully configured the backend" を確認
+
+    # リモートバケットにstateファイルが作成されたことを確認
+    gsutil ls gs://{project-id}-terraform-state/wif/
+    ```
+  - **検証方法**:
+    - `terraform init` が成功、"Successfully configured the backend" メッセージ確認
+    - `gsutil ls gs://{project-id}-terraform-state/wif/` でstateファイル確認
+    - `terraform state list` で既存リソースがリストされることを確認
   - _Requirements: 17.1, 17.2, 17.3_
 
 - [ ] 2.3 (P) Terraform モジュール作成（基本リソース）
-  - `modules/artifact-registry/` モジュール（Dockerリポジトリ）
-  - `modules/iam/` モジュール（サービスアカウント、権限管理、WIF）
-  - `modules/cloud-run/` モジュール（Backend API ホスティング）
-  - `modules/storage/` モジュール（Cloud Storage バケット）
   - **前提条件**: タスク2.2完了
-  - **成果物**: `terraform/modules/` 配下のモジュールファイル
-  - **検証方法**: `terraform validate` が成功
+  - **既存モジュール**: `terraform/wif/` - Workload Identity Federation（デプロイ済み、移行のみ）
+  - **新規作成モジュール**:
+    - `modules/artifact-registry/` モジュール（Dockerリポジトリ）
+    - `modules/iam/` モジュール（Backend API Service Account専用）
+    - `modules/cloud-run/` モジュール（Backend API ホスティング）
+    - `modules/storage/` モジュール（Cloud Storage バケット、Phase 4で使用）
+  - **注意**:
+    - WIFモジュールは既にデプロイ済みなので、新規作成ではなくstate管理のみ
+    - `modules/iam/` は Backend API用のService Accountを作成（WIF Deployer SAとは別物）
+  - **成果物**: `terraform/modules/` 配下のモジュールファイル（`main.tf`, `variables.tf`, `outputs.tf`）
+  - **検証方法**: `terraform validate` で各モジュールの構文チェック
   - _Requirements: 17.5_
 
 - [ ] 2.4 (P) Artifact Registry リポジトリ作成（Terraform apply）
   - **前提条件**: タスク2.3完了
   - `terraform/environments/staging/main.tf` で `artifact-registry` モジュールを呼び出し
   - `asia-northeast1` に Docker リポジトリ `ledger-muse` を作成
+  - **既存WIF Service Accountの権限について**:
+    - `github-deployer` SAには既に `roles/artifactregistry.writer` 権限が設定済み
+    - 追加のIAM設定は不要（既存WIFで対応済み）
   - **成果物**: Artifact Registry リポジトリ（`asia-northeast1-docker.pkg.dev/{project-id}/ledger-muse`）
-  - **検証方法**: `gcloud artifacts repositories list` でリポジトリ確認
+  - **検証方法**:
+    ```bash
+    gcloud artifacts repositories list --location=asia-northeast1
+    # ledger-muse リポジトリが存在することを確認
+    ```
   - **重要**: このタスク完了後、CI/CDでDockerイメージをプッシュ可能になる
   - _Requirements: 12.1, 15.10_
 
@@ -94,11 +172,18 @@ Phase 0では、以下の3つの基盤を構築します：
   - **前提条件**: タスク2.3完了
   - `terraform/environments/staging/main.tf` で `iam` モジュールを呼び出し
   - Backend API用サービスアカウント作成（`backend-api-staging-sa`）
+  - **WIF Deployer SAとの違い**:
+    - `github-deployer`: GitHub Actionsがデプロイ時に使用（既存）
+    - `backend-api-staging-sa`: Cloud Runで実行時に使用（新規作成）
   - 必要な権限付与（`roles/datastore.user`, `roles/storage.objectAdmin`, `roles/cloudvision.user`, `roles/pubsub.publisher`）
-  - Workload Identity Federation 設定（GitHub Actions用）
-  - **成果物**: サービスアカウント、IAMポリシーバインディング、WIF設定
-  - **検証方法**: `gcloud iam service-accounts list` でSA確認、`gcloud iam workload-identity-pools list` でWIF確認
+  - **成果物**: サービスアカウント、IAMポリシーバインディング
+  - **検証方法**:
+    ```bash
+    gcloud iam service-accounts list | grep backend-api
+    # backend-api-staging-sa が存在することを確認
+    ```
   - **重要**: このタスク完了後、Cloud Runデプロイ時にサービスアカウントを指定可能
+  - **注意**: Workload Identity Federationの設定は不要（既存WIFで対応済み）
   - _Requirements: 11.1, 11.2, 12.1_
 
 - [ ] 2.6 Staging 環境 Cloud Run 初期定義（Terraform apply）
@@ -106,10 +191,19 @@ Phase 0では、以下の3つの基盤を構築します：
   - `terraform/environments/staging/main.tf` で `cloud-run` モジュールを呼び出し
   - Cloud Run サービス作成（`ledger-muse-api-staging`）
   - コンテナイメージはプレースホルダー（`gcr.io/cloudrun/hello`）
+  - サービスアカウント指定: `backend-api-staging-sa@{project-id}.iam.gserviceaccount.com`
   - 環境変数、メモリ、CPU、スケーリング設定
   - **成果物**: Cloud Run サービス（初期デプロイ）
-  - **検証方法**: `gcloud run services list` でサービス確認、エンドポイントアクセス
-  - **注意**: 以降のデプロイはGitHub Actionsで更新
+  - **検証方法**:
+    ```bash
+    gcloud run services list --platform managed
+    # ledger-muse-api-staging が存在することを確認
+
+    # エンドポイントアクセス
+    curl $(gcloud run services describe ledger-muse-api-staging --platform managed --region asia-northeast1 --format 'value(status.url)')
+    # プレースホルダーアプリからのレスポンスを確認
+    ```
+  - **注意**: 以降のデプロイはGitHub Actionsで更新（既存WIF Deployer SAを使用）
   - _Requirements: 12.1, 12.7, 12.12_
 
 - [ ] 2.7* Queue/Async 基盤スキャフォールド（Terraform）
@@ -173,6 +267,43 @@ Phase 0では、以下の3つの基盤を構築します：
 
 **実施目的**: Terraformで構築したインフラ（Artifact Registry、サービスアカウント、Cloud Run）を使用してBackendをデプロイ。
 
+#### GitHub Secrets設定（タスク4.1の前提条件）
+
+Cloud Runデプロイワークフロー（タスク4.1）を実行する前に、以下のGitHub Secretsを設定する必要があります。
+
+**必要なSecrets**
+
+| Secret | 説明 | 取得方法 |
+|--------|------|---------|
+| `GCP_PROJECT_ID` | GCPプロジェクトID | `terraform/common.auto.tfvars`の`project_id` |
+| `WIF_PROVIDER` | Workload Identity Provider ID | `terraform/wif/`で`terraform output wif_provider_name` |
+| `WIF_SERVICE_ACCOUNT` | WIF用サービスアカウントメール | `terraform/wif/`で`terraform output service_account_email` |
+
+**設定手順**
+
+```bash
+# 1. Terraform outputから値を取得
+cd terraform/wif
+export WIF_PROVIDER=$(terraform output -raw wif_provider_name)
+export WIF_SERVICE_ACCOUNT=$(terraform output -raw service_account_email)
+export GCP_PROJECT_ID=$(grep 'project_id' ../common.auto.tfvars | cut -d'"' -f2)
+
+# 2. GitHub Secretsに設定（GitHub CLIを使用）
+gh secret set GCP_PROJECT_ID --body "$GCP_PROJECT_ID"
+gh secret set WIF_PROVIDER --body "$WIF_PROVIDER"
+gh secret set WIF_SERVICE_ACCOUNT --body "$WIF_SERVICE_ACCOUNT"
+
+# 3. 設定確認
+gh secret list
+```
+
+**注意**: GitHub CLIがない場合は、GitHub UIから手動で設定してください：
+1. GitHubリポジトリページ → Settings → Secrets and variables → Actions
+2. "New repository secret"をクリック
+3. 上記の値を入力
+
+---
+
 - [ ] 4.1 (P) Cloud Run デプロイワークフロー実装
   - **前提条件**: タスク2.4, 2.5, 2.6完了（Artifact Registry、SA、Cloud Runが存在）
   - `.github/workflows/ci.yml` にデプロイジョブ追加
@@ -182,8 +313,66 @@ Phase 0では、以下の3つの基盤を構築します：
   - Cloud Run へのデプロイ（Staging環境、PR preview、Production）
   - デプロイ後のヘルスチェック
   - **成果物**: `.github/workflows/ci.yml`（デプロイ部分）
-  - **検証方法**: PR作成→デプロイ成功→`curl https://{cloud-run-url}/health` で200 OK確認
   - **重要**: ワークフローファイル自体は既に作成済みだが、実行確認は未完了
+  - **検証方法（詳細）**:
+
+    **ステップ1: テスト用ブランチとPRの作成**
+    ```bash
+    # 1. テスト用ブランチを作成
+    git checkout -b test/cloud-run-deploy
+
+    # 2. 軽微な変更を加える（例: READMEに空行追加）
+    echo "" >> README.md
+    git add README.md
+    git commit -m "test: Verify Cloud Run deploy pipeline"
+
+    # 3. ブランチをプッシュ
+    git push origin test/cloud-run-deploy
+
+    # 4. PRを作成
+    gh pr create --title "Test: Cloud Run deploy pipeline" \
+                 --body "Testing Cloud Run deployment workflow"
+    ```
+
+    **ステップ2: GitHub Actionsの実行確認**
+    1. GitHubリポジトリページ → "Actions"タブ
+    2. "CI/CD Pipeline"ワークフローが実行中であることを確認
+    3. ワークフロー名をクリックして詳細を表示
+    4. "Deploy Backend to Cloud Run"ジョブが成功するまで待機
+
+    **ステップ3: ワークフロー失敗時のログ確認**
+    ```bash
+    # GitHub CLIでログを確認
+    gh run list --limit 1
+    gh run view <run-id> --log-failed
+    ```
+
+    **ステップ4: Cloud Run URLの確認とヘルスチェック**
+    ```bash
+    # Cloud Runサービス一覧を確認
+    gcloud run services list --platform managed --region asia-northeast1
+
+    # サービスURLを取得
+    export SERVICE_URL=$(gcloud run services describe ledger-muse-api-pr-2 \
+      --platform managed \
+      --region asia-northeast1 \
+      --format 'value(status.url)')
+
+    # ヘルスチェック
+    curl $SERVICE_URL/health
+    # 期待される出力: {"status":"ok","version":"..."}
+    ```
+
+    **ステップ5: PRコメントの確認**
+    - PR画面に戻り、GitHub Actionsボットが以下のコメントを投稿していることを確認:
+      ```
+      ### 🚀 Backend Preview Deployed
+
+      **API URL**: https://ledger-muse-api-pr-2-....a.run.app
+      **Health Check**: https://ledger-muse-api-pr-2-....a.run.app/health
+
+      This preview will be available until the PR is closed.
+      ```
   - _Requirements: 12.1, 12.7, 15.10_
 
 ---

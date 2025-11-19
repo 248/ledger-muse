@@ -1,0 +1,6 @@
+# Example variables for App Hosting deployer SA
+service_account_id = "firebase-apphosting-deployer"
+service_account_roles = [
+  "roles/firebasehosting.admin",
+  "roles/iam.serviceAccountUser"
+]

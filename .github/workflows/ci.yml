@@ -1,0 +1,112 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+# Cancel in-progress runs on the same PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Detect which parts of the codebase changed
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for file changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+              - '.github/workflows/ci.yml'
+              - 'firebase.json'
+            backend:
+              - 'backend/**'
+              - '.github/workflows/ci.yml'
+
+  # Frontend Quality Checks
+  frontend-quality:
+    name: Frontend Quality Checks
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type Check
+        run: npm run type-check
+
+      - name: Unit Tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+  # Backend Quality Checks
+  backend-quality:
+    name: Backend Quality Checks
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+          cache-dependency-path: backend/go.sum
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest
+          working-directory: backend
+
+      - name: Unit Tests
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Coverage Report
+        run: go tool cover -func=coverage.out
+
+      - name: Build
+        run: go build -v ./...
+
+  # Note: Frontend deployment to Firebase App Hosting is handled by GitHub integration
+  # PR previews and production deployments are automatically triggered by Firebase App Hosting
+  # This CI pipeline only performs quality checks for frontend
+
+  # Note: Backend deployment to Cloud Run will be implemented in Phase 0 Task 4
+  # after Terraform infrastructure (Artifact Registry, Service Accounts) is set up

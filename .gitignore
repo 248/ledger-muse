@@ -30,3 +30,6 @@ coverage.out
 terraform.tfstate.backup
 *.tfvars
 .terraform.lock.hcl
+terraform/common.auto.tfvars
+
+tmp

@@ -1,3 +1,4 @@
+// Package main is the entry point for the Ledger Muse API server.
 package main
 
 import (

@@ -2,11 +2,27 @@
 
 ## Phase 0: プロジェクト基盤構築
 
-- [ ] 1. 開発環境セットアップ
+### フェーズ目標
+
+Phase 0では、以下の3つの基盤を構築します：
+
+1. **開発環境**: リポジトリ、Frontend/Backendプロジェクト、ローカル開発環境
+2. **インフラ基盤（Terraform）**: GCPリソース（Artifact Registry、Cloud Run、IAMなど）
+3. **CI/CD**: 品質ゲート、Firebase App Hosting、Cloud Runデプロイパイプライン
+
+**重要**: CI/CDのCloud Runデプロイは、Terraformによるインフラ構築後に実施します（Artifact Registry、サービスアカウントが必要）。
+
+---
+
+### 1. 開発環境セットアップ
+
 - [x] 1.1 (P) リポジトリとディレクトリ構造の初期化
   - モノレポ構造（`frontend/`, `backend/`, `terraform/`）の作成
   - `.gitignore` の設定（Node.js、Go、Terraform用）
   - ルートレベルの `README.md` 作成
+  - **前提条件**: なし
+  - **成果物**: リポジトリ構造
+  - **検証方法**: `ls -la` でディレクトリ確認
   - _Requirements: 16.1_
 
 - [x] 1.2 (P) Frontend プロジェクトの初期化
@@ -15,6 +31,9 @@
   - Vitest + React Testing Library のセットアップ
   - Tailwind CSS の導入
   - `package.json` スクリプト定義（dev、build、lint、type-check、test）
+  - **前提条件**: タスク1.1完了
+  - **成果物**: `frontend/` ディレクトリ、`package.json`
+  - **検証方法**: `npm run lint`, `npm run type-check`, `npm run test`, `npm run build` が成功
   - _Requirements: 13.1, 16.1_
 
 - [x] 1.3 (P) Backend プロジェクトの初期化
@@ -22,119 +41,442 @@
   - Echo フレームワーク v4.x の導入
   - golangci-lint 設定（`.golangci.yml`）
   - Hexagonal Architecture のディレクトリ構造作成（`cmd/`, `internal/domain/`, `internal/application/`, `internal/adapter/`, `internal/port/`, `pkg/`）
+  - **前提条件**: タスク1.1完了
+  - **成果物**: `backend/` ディレクトリ、`go.mod`、`.golangci.yml`
+  - **検証方法**: `go build ./...`, `golangci-lint run` が成功
   - _Requirements: 10.1, 16.1_
 
-- [ ] 2. CI/CD パイプライン構築
-- [ ] 2.1 GitHub Actions ワークフロー作成
-  - `.github/workflows/quality-gate.yml` の実装（Lint、TypeCheck、Test、Build）
+---
+
+### 2. Terraform基盤構築
+
+**実施目的**: GCPリソース（Artifact Registry、Cloud Run、IAMなど）を構築し、CI/CDデプロイの前提条件を整える。
+
+#### 既存リソースの状況（タスク実施前）
+
+以下のリソースは既にデプロイ済みです：
+
+**Workload Identity Federation（WIF）**
+- **場所**: `terraform/wif/`
+- **stateファイル**: ローカル（`terraform/wif/terraform.tfstate`）
+- **リソース**:
+  - Workload Identity Pool: `github-actions-pool`
+  - OIDC Provider: `github-actions-provider`
+  - Service Account: `github-deployer@{project-id}.iam.gserviceaccount.com`
+  - IAM権限:
+    - `roles/artifactregistry.writer` - Dockerイメージプッシュ用
+    - `roles/run.admin` - Cloud Runデプロイ用
+    - `roles/iam.serviceAccountUser` - SAの使用権限
+
+**未デプロイのリソース（以下のタスクで新規作成）**:
+- Artifact Registry リポジトリ（タスク2.4）
+- Backend API Service Account（タスク2.5）
+- Cloud Run サービス（タスク2.6）
+
+---
+
+#### 実行手順の概要
+
+1. **ステップ1**: リモートステートバケット作成（タスク2.1）
+2. **ステップ2**: 既存WIF stateのリモート移行（タスク2.2）
+3. **ステップ3**: 新しいモジュール作成とデプロイ（タスク2.3-2.6）
+
+---
+
+- [ ] 2.1 リモートステートバケット作成（Terraform Bootstrap）
+  - **前提条件**: GCPプロジェクト作成済み、Terraform CLI インストール済み
+  - `google_storage_bucket` で Terraform ステート用バケット作成（バージョニング有効化）
+  - IAM 最小権限設定（開発者に `roles/storage.objectAdmin`）
+  - **成果物**: `{project-id}-terraform-state` バケット
+  - **検証方法**: `gsutil ls gs://{project-id}-terraform-state` でバケット確認
+  - **実行コマンド**:
+    ```bash
+    gcloud storage buckets create gs://{project-id}-terraform-state \
+      --location=asia-northeast1 \
+      --uniform-bucket-level-access
+    ```
+  - **注意**: 初回のみ手動実行、または bootstrap 用 Terraform で作成
+  - _Requirements: 17.1, 17.2_
+
+- [ ] 2.2 Terraform プロジェクト初期化とWIF state移行
+  - **前提条件**: タスク2.1完了、既存WIF（`terraform/wif/`）がデプロイ済み
+  - Terraform バージョン指定（v1.9.x）、`terraform/provider.tf` 作成（既存の場合はスキップ）
+  - 環境分離構造作成（`terraform/environments/staging/`, `terraform/environments/prod/`）
+  - 共通変数定義（`terraform/common.auto.tfvars`）確認
+  - **既存WIF stateのリモート移行**:
+    - `terraform/wif/backend.tf` を作成してGCSバックエンド設定
+    - `terraform init -migrate-state` でローカルstateをリモートに移行
+  - **成果物**:
+    - `terraform/backend.tf` - ルートレベルのバックエンド設定（新規の場合）
+    - `terraform/environments/staging/` - Staging環境ディレクトリ
+    - `terraform/wif/backend.tf` - WIFモジュールのバックエンド設定
+    - リモートバケットに `wif/default.tfstate` が作成される
+  - **実行コマンド**:
+    ```bash
+    # WIFモジュールにbackend.tfを追加
+    cd terraform/wif
+    cat > backend.tf <<'EOF'
+    terraform {
+      backend "gcs" {
+        bucket = "{project-id}-terraform-state"
+        prefix = "wif"
+      }
+    }
+    EOF
+
+    # stateをリモートに移行
+    terraform init -migrate-state
+    # "Successfully configured the backend" を確認
+
+    # リモートバケットにstateファイルが作成されたことを確認
+    gsutil ls gs://{project-id}-terraform-state/wif/
+    ```
+  - **検証方法**:
+    - `terraform init` が成功、"Successfully configured the backend" メッセージ確認
+    - `gsutil ls gs://{project-id}-terraform-state/wif/` でstateファイル確認
+    - `terraform state list` で既存リソースがリストされることを確認
+  - _Requirements: 17.1, 17.2, 17.3_
+
+- [ ] 2.3 (P) Terraform モジュール作成（基本リソース）
+  - **前提条件**: タスク2.2完了
+  - **既存モジュール**: `terraform/wif/` - Workload Identity Federation（デプロイ済み、移行のみ）
+  - **新規作成モジュール**:
+    - `modules/artifact-registry/` モジュール（Dockerリポジトリ）
+    - `modules/iam/` モジュール（Backend API Service Account専用）
+    - `modules/cloud-run/` モジュール（Backend API ホスティング）
+    - `modules/storage/` モジュール（Cloud Storage バケット、Phase 4で使用）
+  - **注意**:
+    - WIFモジュールは既にデプロイ済みなので、新規作成ではなくstate管理のみ
+    - `modules/iam/` は Backend API用のService Accountを作成（WIF Deployer SAとは別物）
+  - **成果物**: `terraform/modules/` 配下のモジュールファイル（`main.tf`, `variables.tf`, `outputs.tf`）
+  - **検証方法**: `terraform validate` で各モジュールの構文チェック
+  - _Requirements: 17.5_
+
+- [ ] 2.4 (P) Artifact Registry リポジトリ作成（Terraform apply）
+  - **前提条件**: タスク2.3完了
+  - `terraform/environments/staging/main.tf` で `artifact-registry` モジュールを呼び出し
+  - `asia-northeast1` に Docker リポジトリ `ledger-muse` を作成
+  - **既存WIF Service Accountの権限について**:
+    - `github-deployer` SAには既に `roles/artifactregistry.writer` 権限が設定済み
+    - 追加のIAM設定は不要（既存WIFで対応済み）
+  - **成果物**: Artifact Registry リポジトリ（`asia-northeast1-docker.pkg.dev/{project-id}/ledger-muse`）
+  - **検証方法**:
+    ```bash
+    gcloud artifacts repositories list --location=asia-northeast1
+    # ledger-muse リポジトリが存在することを確認
+    ```
+  - **重要**: このタスク完了後、CI/CDでDockerイメージをプッシュ可能になる
+  - _Requirements: 12.1, 15.10_
+
+- [ ] 2.5 Backend API サービスアカウント作成（Terraform apply）
+  - **前提条件**: タスク2.3完了
+  - `terraform/environments/staging/main.tf` で `iam` モジュールを呼び出し
+  - Backend API用サービスアカウント作成（`backend-api-staging-sa`）
+  - **WIF Deployer SAとの違い**:
+    - `github-deployer`: GitHub Actionsがデプロイ時に使用（既存）
+    - `backend-api-staging-sa`: Cloud Runで実行時に使用（新規作成）
+  - 必要な権限付与（`roles/datastore.user`, `roles/storage.objectAdmin`, `roles/cloudvision.user`, `roles/pubsub.publisher`）
+  - **成果物**: サービスアカウント、IAMポリシーバインディング
+  - **検証方法**:
+    ```bash
+    gcloud iam service-accounts list | grep backend-api
+    # backend-api-staging-sa が存在することを確認
+    ```
+  - **重要**: このタスク完了後、Cloud Runデプロイ時にサービスアカウントを指定可能
+  - **注意**: Workload Identity Federationの設定は不要（既存WIFで対応済み）
+  - _Requirements: 11.1, 11.2, 12.1_
+
+- [ ] 2.6 Staging 環境 Cloud Run 初期定義（Terraform apply）
+  - **前提条件**: タスク2.4, 2.5完了
+  - `terraform/environments/staging/main.tf` で `cloud-run` モジュールを呼び出し
+  - Cloud Run サービス作成（`ledger-muse-api-staging`）
+  - コンテナイメージはプレースホルダー（`gcr.io/cloudrun/hello`）
+  - サービスアカウント指定: `backend-api-staging-sa@{project-id}.iam.gserviceaccount.com`
+  - 環境変数、メモリ、CPU、スケーリング設定
+  - **成果物**: Cloud Run サービス（初期デプロイ）
+  - **検証方法**:
+    ```bash
+    gcloud run services list --platform managed
+    # ledger-muse-api-staging が存在することを確認
+
+    # エンドポイントアクセス
+    curl $(gcloud run services describe ledger-muse-api-staging --platform managed --region asia-northeast1 --format 'value(status.url)')
+    # プレースホルダーアプリからのレスポンスを確認
+    ```
+  - **注意**: 以降のデプロイはGitHub Actionsで更新（既存WIF Deployer SAを使用）
+  - _Requirements: 12.1, 12.7, 12.12_
+
+- [ ] 2.7* Queue/Async 基盤スキャフォールド（Terraform）
+  - **前提条件**: タスク2.5完了
+  - Pub/Sub トピック/サブスクリプション雛形（`receipt-uploaded`）
+  - Cloud Tasks キュー雛形
+  - OCR ワーカー用 Cloud Run サービス/SA をプレースホルダー作成
+  - **成果物**: Pub/Sub、Cloud Tasks リソース
+  - **検証方法**: `gcloud pubsub topics list`, `gcloud tasks queues list` で確認
+  - **注意**: Phase 4まで延期可能（OCR機能実装時に必須）
+  - _Requirements: 5.9, 5.10, 12.4, 12.5, 12.6_
+
+- [ ] 2.8* KMS キーリング/キー雛形（Terraform）
+  - **前提条件**: タスク2.2完了
+  - KMS キーリング作成（`ledger-muse-staging`）
+  - 暗号鍵作成（`storage-key`）
+  - Rotation policy 設定（90日）
+  - **成果物**: KMS キーリング、暗号鍵
+  - **検証方法**: `gcloud kms keyrings list` で確認
+  - **注意**: Phase 7まで延期可能（暗号化強化時に必須）
+  - _Requirements: 19.4, 19.6_
+
+- [ ] 2.9* Monitoring/Alerting 雛形（Terraform）
+  - **前提条件**: タスク2.6完了
+  - Uptime Check 作成（Cloud Run `/health` エンドポイント）
+  - AlertPolicy 作成（レスポンス遅延 > 3秒、エラーレート > 1%）
+  - **成果物**: Uptime Check、Alert Policy
+  - **検証方法**: GCPコンソールでアラート確認
+  - **注意**: Phase 7まで延期可能（運用監視強化時に必須）
+  - _Requirements: 12.8, 15.3, 15.4_
+
+---
+
+### 3. CI/CD品質ゲートとFirebase App Hosting
+
+**実施目的**: GCPインフラに依存しない品質チェックとフロントエンドデプロイを先行実施。
+
+- [x] 3.1 GitHub Actions 品質ゲートワークフロー作成
+  - **前提条件**: タスク1.2, 1.3完了
+  - `.github/workflows/ci.yml` の実装（Lint、TypeCheck、Test、Build）
   - Frontend 品質ゲート（ESLint、TypeScript、Vitest）
   - Backend 品質ゲート（golangci-lint、`go test`、`go build`）
-  - ブランチ保護ルール設定（`main` には品質ゲート通過必須）
+  - 変更検出（`dorny/paths-filter`）による最適化
+  - **成果物**: `.github/workflows/ci.yml`（品質チェック部分）
+  - **検証方法**: PR作成時にワークフロー実行、すべてのチェックが成功
   - _Requirements: 15.10, 16.1_
 
-- [ ] 2.2 (P) Firebase App Hosting の GitHub 統合
+- [x] 3.2 (P) Firebase App Hosting の GitHub 統合
+  - **前提条件**: なし（Firebase側で完結）
   - Firebase プロジェクト作成
   - Firebase App Hosting の有効化
   - GitHub リポジトリ連携設定
   - PR Preview 環境の設定
+  - **成果物**: Firebase App Hosting設定、GitHub統合
+  - **検証方法**: PR作成時にプレビューURLが発行される
   - _Requirements: 13.1, 15.10_
 
-- [ ] 2.3 (P) Cloud Run デプロイワークフロー作成
-  - `.github/workflows/deploy-backend.yml` の実装
+---
+
+### 4. Cloud Runデプロイパイプライン
+
+**実施目的**: Terraformで構築したインフラ（Artifact Registry、サービスアカウント、Cloud Run）を使用してBackendをデプロイ。
+
+#### GitHub Secrets設定（タスク4.1の前提条件）
+
+Cloud Runデプロイワークフロー（タスク4.1）を実行する前に、以下のGitHub Secretsを設定する必要があります。
+
+**必要なSecrets**
+
+| Secret | 説明 | 取得方法 |
+|--------|------|---------|
+| `GCP_PROJECT_ID` | GCPプロジェクトID | `terraform/common.auto.tfvars`の`project_id` |
+| `WIF_PROVIDER` | Workload Identity Provider ID | `terraform/wif/`で`terraform output wif_provider_name` |
+| `WIF_SERVICE_ACCOUNT` | WIF用サービスアカウントメール | `terraform/wif/`で`terraform output service_account_email` |
+
+**設定手順**
+
+```bash
+# 1. Terraform outputから値を取得
+cd terraform/wif
+export WIF_PROVIDER=$(terraform output -raw wif_provider_name)
+export WIF_SERVICE_ACCOUNT=$(terraform output -raw service_account_email)
+export GCP_PROJECT_ID=$(grep 'project_id' ../common.auto.tfvars | cut -d'"' -f2)
+
+# 2. GitHub Secretsに設定（GitHub CLIを使用）
+gh secret set GCP_PROJECT_ID --body "$GCP_PROJECT_ID"
+gh secret set WIF_PROVIDER --body "$WIF_PROVIDER"
+gh secret set WIF_SERVICE_ACCOUNT --body "$WIF_SERVICE_ACCOUNT"
+
+# 3. 設定確認
+gh secret list
+```
+
+**注意**: GitHub CLIがない場合は、GitHub UIから手動で設定してください：
+1. GitHubリポジトリページ → Settings → Secrets and variables → Actions
+2. "New repository secret"をクリック
+3. 上記の値を入力
+
+---
+
+- [ ] 4.1 (P) Cloud Run デプロイワークフロー実装
+  - **前提条件**: タスク2.4, 2.5, 2.6完了（Artifact Registry、SA、Cloud Runが存在）
+  - `.github/workflows/ci.yml` にデプロイジョブ追加
+  - Workload Identity Federation による GCP 認証
+  - Dockerイメージビルド
   - Artifact Registry へのイメージプッシュ
-  - Cloud Run へのデプロイ（Staging環境）
-  - デプロイ成功時の通知設定
-  - _Requirements: 12.1, 15.10_
+  - Cloud Run へのデプロイ（Staging環境、PR preview、Production）
+  - デプロイ後のヘルスチェック
+  - **成果物**: `.github/workflows/ci.yml`（デプロイ部分）
+  - **重要**: ワークフローファイル自体は既に作成済みだが、実行確認は未完了
+  - **検証方法（詳細）**:
 
-- [ ] 3. Terraform によるインフラ構成管理
-- [ ] 3.1 Terraform プロジェクト初期化
-  - Terraform バージョン指定（v1.9.x）
-  - リモートステート設定（Cloud Storage バックエンド）
-  - State ロッキング設定
-  - 環境分離構造（`terraform/environments/staging`, `prod`）
-  - _Requirements: 17.1, 17.2, 17.3_
+    **ステップ1: テスト用ブランチとPRの作成**
+    ```bash
+    # 1. テスト用ブランチを作成
+    git checkout -b test/cloud-run-deploy
 
-- [ ] 3.2 (P) Terraform モジュール作成
-  - `modules/cloud-run` モジュール（Backend API ホスティング）
-  - `modules/firestore` モジュール（データベース）
-  - `modules/storage` モジュール（Cloud Storage バケット）
-  - `modules/iam` モジュール（サービスアカウント、権限管理）
-  - _Requirements: 17.5_
+    # 2. 軽微な変更を加える（例: READMEに空行追加）
+    echo "" >> README.md
+    git add README.md
+    git commit -m "test: Verify Cloud Run deploy pipeline"
 
-- [ ] 3.3 Staging 環境の Terraform 定義
-  - `terraform/environments/staging/main.tf` の作成
-  - 環境固有変数（`staging.tfvars`）の定義
-  - Cloud Run、Firestore、Cloud Storage の設定
-  - `terraform plan` による変更内容の確認
-  - _Requirements: 12.12, 17.2, 17.4_
+    # 3. ブランチをプッシュ
+    git push origin test/cloud-run-deploy
 
-- [ ] 4. ローカル開発環境セットアップ
-- [ ] 4.1 Firebase Emulator Suite のセットアップ
+    # 4. PRを作成
+    gh pr create --title "Test: Cloud Run deploy pipeline" \
+                 --body "Testing Cloud Run deployment workflow"
+    ```
+
+    **ステップ2: GitHub Actionsの実行確認**
+    1. GitHubリポジトリページ → "Actions"タブ
+    2. "CI/CD Pipeline"ワークフローが実行中であることを確認
+    3. ワークフロー名をクリックして詳細を表示
+    4. "Deploy Backend to Cloud Run"ジョブが成功するまで待機
+
+    **ステップ3: ワークフロー失敗時のログ確認**
+    ```bash
+    # GitHub CLIでログを確認
+    gh run list --limit 1
+    gh run view <run-id> --log-failed
+    ```
+
+    **ステップ4: Cloud Run URLの確認とヘルスチェック**
+    ```bash
+    # Cloud Runサービス一覧を確認
+    gcloud run services list --platform managed --region asia-northeast1
+
+    # サービスURLを取得
+    export SERVICE_URL=$(gcloud run services describe ledger-muse-api-pr-2 \
+      --platform managed \
+      --region asia-northeast1 \
+      --format 'value(status.url)')
+
+    # ヘルスチェック
+    curl $SERVICE_URL/health
+    # 期待される出力: {"status":"ok","version":"..."}
+    ```
+
+    **ステップ5: PRコメントの確認**
+    - PR画面に戻り、GitHub Actionsボットが以下のコメントを投稿していることを確認:
+      ```
+      ### 🚀 Backend Preview Deployed
+
+      **API URL**: https://ledger-muse-api-pr-2-....a.run.app
+      **Health Check**: https://ledger-muse-api-pr-2-....a.run.app/health
+
+      This preview will be available until the PR is closed.
+      ```
+  - _Requirements: 12.1, 12.7, 15.10_
+
+---
+
+### 5. ローカル開発環境セットアップ
+
+**実施目的**: GCPに接続せずにローカルでフルスタック開発を可能にする。
+
+- [ ] 5.1 Firebase Emulator Suite のセットアップ
+  - **前提条件**: タスク1.2完了
   - Firebase CLI のインストール
   - `firebase init emulators` による初期化
   - `firebase.json` の設定（Auth、Firestore、Storage、Pub/Sub、UI）
   - エミュレーターのポート設定（Auth: 9099、Firestore: 8080、Storage: 9199、Pub/Sub: 8085、UI: 4000）
+  - **成果物**: `firebase.json`、Firebase Emulator Suite
+  - **検証方法**: `firebase emulators:start` で起動、http://localhost:4000 でUI確認
   - _Requirements: 9.1, 12.2_
 
-- [ ] 4.2 Docker Compose 環境構築（Colima + Docker）
+- [ ] 5.2 Docker Compose 環境構築（Colima + Docker）
+  - **前提条件**: なし
   - Colima、Docker、Docker Compose のインストール（Homebrew）
   - Colima の初期設定（CPU 4、メモリ 8GB、ディスク 60GB）
   - `docker-compose.yml` の作成（Backend + Firebase Emulator）
   - `backend/Dockerfile.dev` の作成（Air によるホットリロード対応）
   - `.air.toml` の作成
+  - **成果物**: `docker-compose.yml`, `backend/Dockerfile.dev`, `.air.toml`
+  - **検証方法**: `colima start`, `docker compose up` で起動確認
   - _Requirements: 12.1, 12.12_
 
-- [ ] 4.3 環境変数設定
+- [ ] 5.3 環境変数設定
+  - **前提条件**: タスク1.2, 1.3完了
   - Frontend `.env.local` の作成（API URL、エミュレーターホスト、NextAuth設定）
   - Backend `.env` の作成（エミュレーターホスト、GCP プロジェクトID）
   - 環境変数のドキュメント化（README への記載）
+  - **成果物**: `frontend/.env.local`, `backend/.env`, `README.md`（環境変数セクション）
+  - **検証方法**: `.env` ファイル読み込み確認、環境変数が正しく設定されている
   - _Requirements: 11.8_
 
-- [ ] 4.4 ローカル環境の起動確認
+- [ ] 5.4 ローカル環境の起動確認
+  - **前提条件**: タスク5.1, 5.2, 5.3完了
   - `colima start` でDocker環境起動
   - `docker compose up -d` でBackend + Emulator起動
   - `npm run dev` でFrontend起動（ホスト実行）
   - http://localhost:3000（Frontend）、http://localhost:8080/health（Backend）、http://localhost:4000（Emulator UI）の動作確認
   - HMR（Hot Module Replacement）の即時反映確認
+  - **成果物**: 動作するローカル開発環境
+  - **検証方法**: 各URLにアクセス、ホットリロード確認
   - _Requirements: 13.3_
 
-- [ ] 4.5 (P) Cloud Vision API モックの実装
+- [ ] 5.5 (P) Cloud Vision API モックの実装
+  - **前提条件**: タスク1.3完了
   - ローカル開発用 MockOCRService の実装
   - 環境変数による切り替え（`ENV=local` でモック使用）
   - モックレスポンスの実装（金額、日付、店舗名のダミーデータ）
+  - **成果物**: `backend/internal/adapter/vision/mock_vision.go`
+  - **検証方法**: ローカルでOCR処理のモックが動作する
+  - **注意**: Phase 4まで延期可能（OCR機能実装時に必須）
   - _Requirements: 5.2, 12.4_
+
+---
+
+## Phase 0 完了基準
+
+以下のすべてが満たされた場合、Phase 0完了とします：
+
+1. **開発環境**: Frontend/Backendプロジェクトが初期化され、品質ゲートが通過する
+2. **Terraform基盤**: Artifact Registry、サービスアカウント、Cloud Runが作成され、Terraformで管理されている
+3. **CI/CD**: 品質ゲート、Firebase App Hosting、Cloud Runデプロイが動作する
+4. **ローカル環境**: Firebase Emulator、Docker Composeでローカル開発が可能
+5. **検証**: PR作成→品質ゲート通過→Cloud Runデプロイ成功→エンドポイント確認
+
+---
 
 ## Phase 1: Hello World デプロイ
 
-- [ ] 5. Frontend 最小実装とデプロイ
-- [ ] 5.1 (P) トップページ作成
+- [ ] 6. Frontend 最小実装とデプロイ
+- [ ] 6.1 (P) トップページ作成
   - `app/page.tsx` の実装（Hello World メッセージ）
   - ローカル環境での動作確認（`npm run dev`）
   - レスポンシブデザインの確認（モバイル、タブレット、デスクトップ）
   - _Requirements: 13.1, 13.2_
 
-- [ ] 5.2 Backend API 呼び出しの実装
+- [ ] 6.2 Backend API 呼び出しの実装
   - Backend ヘルスチェック API 呼び出し
   - `fetch` による API リクエスト
   - ローディング状態の表示
   - エラーハンドリング
   - _Requirements: 10.3, 13.3_
 
-- [ ] 5.3 Firebase App Hosting へのデプロイ
+- [ ] 6.3 Firebase App Hosting へのデプロイ
   - GitHub へのプッシュ
   - 自動デプロイの確認
   - Staging 環境での動作確認
   - Preview URL の動作確認
   - _Requirements: 13.1, 15.10_
 
-- [ ] 6. Backend 最小実装とデプロイ
-- [ ] 6.1 (P) ヘルスチェックエンドポイント実装
+- [ ] 7. Backend 最小実装とデプロイ
+- [ ] 7.1 (P) ヘルスチェックエンドポイント実装
   - `GET /health` エンドポイント作成
   - レスポンス形式（JSON: status、version）
   - ローカル環境での動作確認（`go run cmd/api/main.go`）
   - _Requirements: 10.2, 10.3, 15.5_
 
-- [ ] 6.2 Echo サーバーの基本設定
+- [ ] 7.2 Echo サーバーの基本設定
   - Echo インスタンスの初期化
   - CORS ミドルウェアの設定
   - ロガーミドルウェアの設定
@@ -142,33 +484,33 @@
   - ポート設定（環境変数 `PORT` から取得、デフォルト 8080）
   - _Requirements: 10.1, 11.6, 15.1_
 
-- [ ] 6.3 Dockerfile の作成
+- [ ] 7.3 Dockerfile の作成
   - マルチステージビルド（ビルドステージ + ランタイムステージ）
   - distroless ベースイメージの使用（セキュリティ）
   - 最小限のレイヤー構成
   - _Requirements: 12.1, 16.1_
 
-- [ ] 6.4 Cloud Run へのデプロイ
+- [ ] 7.4 Cloud Run へのデプロイ
   - Artifact Registry へのイメージプッシュ
   - Cloud Run サービス作成（Staging環境）
   - 環境変数の設定
   - デプロイ確認（`curl https://api-staging.example.com/health`）
   - _Requirements: 12.1, 12.7, 15.10_
 
-- [ ] 7. エンドツーエンド統合確認
-- [ ] 7.1 ローカル環境での Frontend-Backend 統合
+- [ ] 9. エンドツーエンド統合確認
+- [ ] 9.1 ローカル環境での Frontend-Backend 統合
   - Frontend（localhost:3000）から Backend（localhost:8080）への API 呼び出し
   - CORS エラーの解消確認
   - レスポンスデータの表示確認
   - _Requirements: 10.3, 11.6_
 
-- [ ] 7.2 Staging 環境での Frontend-Backend 統合
+- [ ] 9.2 Staging 環境での Frontend-Backend 統合
   - Firebase App Hosting（Frontend）から Cloud Run（Backend）への API 呼び出し
   - HTTPS 通信の確認
   - レスポンスタイムの確認（< 1秒）
   - _Requirements: 11.3, 11.4, 20.1_
 
-- [ ] 7.3* E2E テストの初期実装
+- [ ] 9.3* E2E テストの初期実装
   - Playwright のセットアップ
   - Hello World ページの表示テスト
   - Backend API 呼び出しテスト
@@ -176,21 +518,21 @@
 
 ## Phase 2: 認証機能実装
 
-- [ ] 8. Google Cloud Identity Platform セットアップ
-- [ ] 8.1 Identity Platform の有効化
+- [ ] 9. Google Cloud Identity Platform セットアップ
+- [ ] 9.1 Identity Platform の有効化
   - Terraform で Identity Platform リソース作成
   - Google プロバイダーの有効化
   - OAuth 2.0 クライアントの作成（Web アプリケーション）
   - リダイレクトURI の設定
   - _Requirements: 1.1, 11.1, 17.1_
 
-- [ ] 8.2 (P) Firebase Admin SDK のセットアップ（Backend）
+- [ ] 9.2 (P) Firebase Admin SDK のセットアップ（Backend）
   - Firebase Admin SDK のインストール
   - サービスアカウント認証の設定
   - ローカル環境でのエミュレーター接続確認
   - _Requirements: 1.1, 11.1_
 
-- [ ] 9. Frontend 認証機能実装
+- [ ] 10. Frontend 認証機能実装
 - [ ] 9.1 NextAuth.js v5 のセットアップ
   - NextAuth.js v5 のインストール
   - `app/api/auth/[...nextauth]/route.ts` の作成
@@ -224,7 +566,7 @@
   - セッション有効期限の設定
   - _Requirements: 1.7_
 
-- [ ] 10. Backend JWT 検証ミドルウェア実装
+- [ ] 11. Backend JWT 検証ミドルウェア実装
 - [ ] 10.1 JWT ミドルウェアの実装
   - Authorization ヘッダーからトークン抽出
   - Firebase Admin SDK による JWT 検証
@@ -244,7 +586,7 @@
   - エラーログの記録
   - _Requirements: 1.4, 10.5, 11.9_
 
-- [ ] 11. 認証機能のテスト
+- [ ] 12. 認証機能のテスト
 - [ ] 11.1* Frontend 認証フローの Unit テスト
   - ログインコンポーネントのテスト
   - セッション状態管理のテスト

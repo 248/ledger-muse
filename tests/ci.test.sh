@@ -70,15 +70,8 @@ assert_contains "$workflow" "go build -v ./\\.\\.\\."
 # Note: Frontend deployment is handled by Firebase App Hosting GitHub integration
 # No deploy-frontend job in CI pipeline
 
-# Backend deployment job
-assert_contains "$workflow" "deploy-backend:"
-assert_contains "$workflow" "needs:\\s*\\[changes, backend-quality\\]"
-assert_contains "$workflow" "google-github-actions/auth@v2"
-assert_contains "$workflow" "google-github-actions/setup-gcloud@v2"
-assert_contains "$workflow" "docker build"
-assert_contains "$workflow" "docker push"
-assert_contains "$workflow" "gcloud run deploy"
-assert_contains "$workflow" "ledger-muse"
+# Note: Backend deployment will be implemented in Phase 0 Task 4
+# after Terraform infrastructure is set up
 
 # Firebase configuration
 assert_contains "$firebase_config" '"hosting"'

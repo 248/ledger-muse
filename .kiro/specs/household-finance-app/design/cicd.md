@@ -44,6 +44,62 @@ Firebase App Hosting は PR 作成時に自動でプレビュー環境を生成�
 - **自動削除**: PRマージまたはクローズ時に自動削除
 - **コスト**: 無料枠内で運用可能（10,000訪問/月まで）
 
+## インフラストラクチャ前提条件
+
+CI/CDパイプラインを実装する前に、以下のGCPインフラストラクチャが構築されている必要があります。
+
+### 品質ゲート（Lint/Test/Build）の前提条件
+
+**前提条件**: なし
+
+- Frontend品質チェック（ESLint、TypeScript、Vitest、Build）
+- Backend品質チェック（golangci-lint、Test、Build）
+
+これらの品質チェックはGCPリソースに依存しないため、インフラ構築前に実装可能です。
+
+### Firebase App Hostingデプロイの前提条件
+
+**前提条件**: なし（Firebase側で完結）
+
+- Firebase プロジェクト作成
+- GitHub リポジトリ連携
+- App Hosting設定
+
+Firebase App HostingはGCPのCompute/Storage以外のサービスを使用するため、GCPインフラ構築と独立して実装可能です。
+
+### Cloud Runデプロイの前提条件
+
+**前提条件**: 以下のTerraformリソースが作成済みであること
+
+1. **Artifact Registry リポジトリ** (`{region}-docker.pkg.dev/{project-id}/ledger-muse`)
+   - Dockerイメージのプッシュ先
+   - Terraformで作成
+
+2. **Backend APIサービスアカウント** (`backend-api-sa@{project}.iam.gserviceaccount.com`)
+   - Cloud Runサービスの実行アカウント
+   - 必要な権限（Firestore、Storage、Vision API、Pub/Sub）が付与済み
+   - Terraformで作成
+
+3. **Workload Identity Federation**（推奨）
+   - GitHub ActionsからGCPへの認証
+   - サービスアカウントキー不要
+   - Terraformで作成（またはGCPコンソールで手動設定）
+
+4. **Cloud Run サービス（初回のみ）**
+   - Terraformで初期作成、以降はGitHub Actionsで更新
+   - または、GitHub Actionsで初回デプロイ時に自動作成
+
+**デプロイフロー**:
+```
+GitHub Actions
+  ↓
+1. Dockerイメージビルド
+  ↓
+2. Artifact Registryへプッシュ（Terraform作成済み）
+  ↓
+3. Cloud Runへデプロイ（サービスアカウント使用）
+```
+
 ## GitHub Actions パイプライン
 
 ### 統合CI/CDパイプライン

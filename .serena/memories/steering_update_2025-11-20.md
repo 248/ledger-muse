@@ -1,0 +1,3 @@
+2025-11-20:
+- Update .kiro/steering/structure.md to describe Terraform remote state pattern (bootstrap bucket, backend prefixes, modules chain) and mention tests/terraform-*.test.sh guards.
+- Update .kiro/steering/tech.md with Terraform workflow (bootstrap bucket creation, common.auto.tfvars sharing, chdir init/plan commands) and current CI expectations (golangci-lint + go test -race -coverprofile + coverage report).

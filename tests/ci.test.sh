@@ -67,6 +67,19 @@ assert_contains "$workflow" "golangci-lint-action@v4"
 assert_contains "$workflow" "go test .*./\\.\\.\\."
 assert_contains "$workflow" "go build -v ./\\.\\.\\."
 
+# Backend deploy job
+assert_contains "$workflow" "deploy-backend:"
+assert_contains "$workflow" "Deploy Backend to Cloud Run"
+assert_contains "$workflow" "needs: \\[changes, backend-quality\\]"
+assert_contains "$workflow" "github.event_name == 'pull_request'"
+assert_contains "$workflow" "google-github-actions/auth@v2"
+assert_contains "$workflow" "google-github-actions/setup-gcloud@v2"
+assert_contains "$workflow" "gcloud auth configure-docker"
+assert_contains "$workflow" "docker build"
+assert_contains "$workflow" "gcloud run deploy"
+assert_contains "$workflow" "create-or-update-comment@v4"
+assert_contains "$workflow" "/health"
+
 # Note: Frontend deployment is handled by Firebase App Hosting GitHub integration
 # No deploy-frontend job in CI pipeline
 

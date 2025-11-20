@@ -326,7 +326,7 @@ gh secret list
 
 ---
 
-- [ ] 4.1 (P) Cloud Run デプロイワークフロー実装
+- [x] 4.1 (P) Cloud Run デプロイワークフロー実装
   - **前提条件**: タスク2.4, 2.5, 2.6完了（Artifact Registry、SA、Cloud Runが存在）
   - `.github/workflows/ci.yml` にデプロイジョブ追加
   - Workload Identity Federation による GCP 認証

@@ -162,7 +162,7 @@ Phase 0では、以下の3つの基盤を構築します：
     - `docs/terraform/README.md` にモジュール一覧を追記して参照先を一元化。
   - _Requirements: 17.5_
 
-- [ ] 2.4 (P) Artifact Registry リポジトリ作成（Terraform apply）
+- [x] 2.4 (P) Artifact Registry リポジトリ作成（Terraform apply）
   - **前提条件**: タスク2.3完了
   - `terraform/environments/staging/main.tf` で `artifact-registry` モジュールを呼び出し
   - `asia-northeast1` に Docker リポジトリ `ledger-muse` を作成
@@ -176,6 +176,9 @@ Phase 0では、以下の3つの基盤を構築します：
     # ledger-muse リポジトリが存在することを確認
     ```
   - **重要**: このタスク完了後、CI/CDでDockerイメージをプッシュ可能になる
+  - **メモ (2025-11-20)**:
+    - `terraform/environments/staging` に backend/provider/variables/main/outputs を作成し、Artifact Registry モジュールを呼び出して `ledger-muse` リポジトリをデプロイできるようにした。
+    - `tests/terraform-environments.test.sh` を追加して環境ルート構成とモジュール呼び出しを検証。`docs/terraform/README.md` に実行手順を追記。
   - _Requirements: 12.1, 15.10_
 
 - [ ] 2.5 Backend API サービスアカウント作成（Terraform apply）

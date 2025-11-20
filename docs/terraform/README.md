@@ -3,7 +3,7 @@
 目的: Terraform 手順を一本化し、共通前提と実行順序を示します。各モジュール固有の詳細は近接する README に記載し、このガイドからリンクします。
 
 ## 共通前提
-- Terraform 1.6+ / google provider 5.x
+- Terraform 1.9.0〜1.x (tested on 1.13.5) / google provider 5.x
 - `terraform/common.auto.tfvars` に `project_id` / `region` を設定（`common.auto.tfvars.example` をコピーして編集）
 - `terraform init/plan/apply` 実行時は `-var-file=../common.auto.tfvars` を添付
 
@@ -31,9 +31,14 @@
    - ドキュメント: `docs/terraform/apphosting.md`  
    - 手順: `terraform/apphosting/` で tfvars 作成 → `init/plan/apply -var-file=../common.auto.tfvars`
 
-5) **環境ごとのモジュール適用**  
-  - 例: Artifact Registry / Cloud Run / Firestore / Storage / PubSub など  
-  - `terraform/environments/<env>/main.tf` で必要なモジュールを呼び出し、`-var-file=../common.auto.tfvars` を指定して plan/apply する  
+5) **環境ごとのモジュール適用**
+  - 例: Artifact Registry / Cloud Run / Firestore / Storage / PubSub など
+  - `terraform/environments/<env>/main.tf` で必要なモジュールを呼び出し、`-var-file=../common.auto.tfvars` を指定して plan/apply する
+  - **Staging Artifact Registry (タスク2.4)**
+    1. `terraform -chdir=terraform/environments/staging init`
+    2. `terraform -chdir=terraform/environments/staging plan -var-file=../../common.auto.tfvars`
+    3. `terraform -chdir=terraform/environments/staging apply -var-file=../../common.auto.tfvars`
+    4. `gcloud artifacts repositories list --location=asia-northeast1 | grep ledger-muse` でリポジトリを確認
   - モジュールを追加したらこのガイドに用途と順序を追記する
 
 ## モジュールカタログ

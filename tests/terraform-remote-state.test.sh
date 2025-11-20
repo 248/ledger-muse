@@ -40,7 +40,7 @@ assert_contains "$backend_tf" 'backend "gcs"'
 assert_contains "$backend_tf" 'bucket[[:space:]]*=[[:space:]]*"ledger-muse-terraform-state"'
 assert_contains "$backend_tf" 'prefix[[:space:]]*=[[:space:]]*"global"'
 
-assert_contains "$provider_tf" 'required_version[[:space:]]*=[[:space:]]*"~> 1.9.0"'
+assert_contains "$provider_tf" 'required_version[[:space:]]*=[[:space:]]*">= 1.9.0, < 2.0.0"'
 assert_contains "$provider_tf" 'provider "google"'
 
 assert_contains "$wif_backend_tf" 'backend "gcs"'

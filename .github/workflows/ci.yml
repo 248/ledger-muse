@@ -153,8 +153,6 @@ jobs:
           echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
           echo "deploy_env=$DEPLOY_ENV" >> "$GITHUB_OUTPUT"
           echo "runtime_service_account=$RUNTIME_SA" >> "$GITHUB_OUTPUT"
-      env:
-        PREVIEW_PREFIX: ${{ env.PREVIEW_PREFIX }}
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -186,6 +184,12 @@ jobs:
             --allow-unauthenticated \
             --service-account "${{ steps.deploy-meta.outputs.runtime_service_account }}" \
             --set-env-vars "ENV=${{ steps.deploy-meta.outputs.deploy_env }}" \
+            --memory 512Mi \
+            --cpu 1 \
+            --timeout 60 \
+            --min-instances 0 \
+            --max-instances 10 \
+            --concurrency 80 \
             --quiet
           DEPLOY_URL=$(gcloud run services describe "${{ steps.deploy-meta.outputs.service_name }}" \
             --project "${{ env.PROJECT_ID }}" \
@@ -193,10 +197,22 @@ jobs:
             --format 'value(status.url)')
           echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
 
-      - name: Health Check
+      - name: Health Check with Retry
         run: |
-          sleep 10
-          curl -fsSL "${{ steps.deploy.outputs.url }}/health"
+          max_attempts=30
+          attempt=0
+          echo "Starting health check for ${{ steps.deploy.outputs.url }}/health"
+          while [ $attempt -lt $max_attempts ]; do
+            if curl -fsSL "${{ steps.deploy.outputs.url }}/health"; then
+              echo "✓ Health check passed on attempt $((attempt + 1))"
+              exit 0
+            fi
+            attempt=$((attempt + 1))
+            echo "Attempt $attempt/$max_attempts failed, retrying in 2 seconds..."
+            sleep 2
+          done
+          echo "✗ Health check failed after $max_attempts attempts"
+          exit 1
 
       - name: Comment preview URL
         if: github.event_name == 'pull_request'

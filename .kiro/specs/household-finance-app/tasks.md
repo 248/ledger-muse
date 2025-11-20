@@ -181,14 +181,15 @@ Phase 0では、以下の3つの基盤を構築します：
     - `tests/terraform-environments.test.sh` を追加して環境ルート構成とモジュール呼び出しを検証。`docs/terraform/README.md` に実行手順を追記。
   - _Requirements: 12.1, 15.10_
 
-- [ ] 2.5 Backend API サービスアカウント作成（Terraform apply）
+- [x] 2.5 Backend API サービスアカウント作成（Terraform apply）
   - **前提条件**: タスク2.3完了
   - `terraform/environments/staging/main.tf` で `iam` モジュールを呼び出し
   - Backend API用サービスアカウント作成（`backend-api-staging-sa`）
   - **WIF Deployer SAとの違い**:
     - `github-deployer`: GitHub Actionsがデプロイ時に使用（既存）
     - `backend-api-staging-sa`: Cloud Runで実行時に使用（新規作成）
-  - 必要な権限付与（`roles/datastore.user`, `roles/storage.objectAdmin`, `roles/cloudvision.user`, `roles/pubsub.publisher`）
+  - 必要な権限付与（`roles/datastore.user`, `roles/storage.objectAdmin`, `roles/pubsub.publisher`, `roles/serviceusage.serviceUsageConsumer`）  
+    - ※ Cloud Vision API 専用ロールは現在提供されていないため、将来必要であれば tfvars で追加する
   - **成果物**: サービスアカウント、IAMポリシーバインディング
   - **検証方法**:
     ```bash
@@ -197,6 +198,10 @@ Phase 0では、以下の3つの基盤を構築します：
     ```
   - **重要**: このタスク完了後、Cloud Runデプロイ時にサービスアカウントを指定可能
   - **注意**: Workload Identity Federationの設定は不要（既存WIFで対応済み）
+  - **メモ (2025-11-20)**:
+    - `terraform/environments/staging/main.tf` で `module "backend_api_service_account"` を追加し、`modules/iam` から SA 作成＋IAM 付与を自動化。
+    - `variables.tf` に `backend_api_service_account_{id,display_name,roles}` を追加し、Firestore/Storage/Vision/PubSub のロールをデフォルトで持たせた。
+    - `outputs.tf` で SA の email を出力し、Cloud Run (2.6) から参照しやすいように整理。`docs/terraform/README.md` に実行手順を追記。
   - _Requirements: 11.1, 11.2, 12.1_
 
 - [ ] 2.6 Staging 環境 Cloud Run 初期定義（Terraform apply）

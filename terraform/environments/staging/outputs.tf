@@ -7,3 +7,8 @@ output "artifact_registry_url" {
   description = "Artifact Registry repository URL"
   value       = module.artifact_registry.repository_url
 }
+
+output "backend_api_service_account_email" {
+  description = "Email of the backend API service account for staging"
+  value       = module.backend_api_service_account.service_account_email
+}

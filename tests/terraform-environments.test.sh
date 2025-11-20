@@ -37,9 +37,24 @@ assert_contains "$staging_dir/main.tf" 'module[[:space:]]+"artifact_registry"'
 assert_contains "$staging_dir/main.tf" '\.\.\/\.\.\/modules\/artifact-registry'
 assert_contains "$staging_dir/main.tf" 'repository_id[[:space:]]*=\s*var\.artifact_registry_repository_id'
 
+assert_contains "$staging_dir/main.tf" 'module[[:space:]]+"backend_api_service_account"'
+assert_contains "$staging_dir/main.tf" '\.\.\/\.\.\/modules\/iam'
+assert_contains "$staging_dir/main.tf" 'service_account_id[[:space:]]*=\s*var\.backend_api_service_account_id'
+assert_contains "$staging_dir/main.tf" 'service_account_roles[[:space:]]*=\s*var\.backend_api_service_account_roles'
+
 assert_contains "$staging_dir/variables.tf" 'variable[[:space:]]+"project_id"'
 assert_contains "$staging_dir/variables.tf" 'variable[[:space:]]+"artifact_registry_repository_id"'
 assert_contains "$staging_dir/variables.tf" 'variable[[:space:]]+"artifact_registry_description"'
+assert_contains "$staging_dir/variables.tf" 'variable[[:space:]]+"backend_api_service_account_id"'
+assert_contains "$staging_dir/variables.tf" 'variable[[:space:]]+"backend_api_service_account_display_name"'
+assert_contains "$staging_dir/variables.tf" 'variable[[:space:]]+"backend_api_service_account_roles"'
+assert_contains "$staging_dir/variables.tf" 'roles/datastore\.user'
+assert_contains "$staging_dir/variables.tf" 'roles/storage\.objectAdmin'
+assert_contains "$staging_dir/variables.tf" 'roles/pubsub\.publisher'
+assert_contains "$staging_dir/variables.tf" 'roles/serviceusage\.serviceUsageConsumer'
+
+assert_contains "$staging_dir/outputs.tf" 'backend_api_service_account_email'
+assert_contains "$staging_dir/outputs.tf" 'module\.backend_api_service_account\.service_account_email'
 
 if [[ $fail -eq 0 ]]; then
   echo "✅ terraform environments tests passed"

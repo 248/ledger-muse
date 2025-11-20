@@ -34,11 +34,21 @@
 5) **環境ごとのモジュール適用**
   - 例: Artifact Registry / Cloud Run / Firestore / Storage / PubSub など
   - `terraform/environments/<env>/main.tf` で必要なモジュールを呼び出し、`-var-file=../common.auto.tfvars` を指定して plan/apply する
+  - **TIP**: `main.tf` で新しいモジュールを追加・変更した場合は、`terraform init` を再実行して依存モジュールをダウンロードする
   - **Staging Artifact Registry (タスク2.4)**
     1. `terraform -chdir=terraform/environments/staging init`
     2. `terraform -chdir=terraform/environments/staging plan -var-file=../../common.auto.tfvars`
     3. `terraform -chdir=terraform/environments/staging apply -var-file=../../common.auto.tfvars`
-    4. `gcloud artifacts repositories list --location=asia-northeast1 | grep ledger-muse` でリポジトリを確認
+    4. CLI: `gcloud artifacts repositories list --location=asia-northeast1 --project=ledger-muse | grep ledger-muse`
+    5. コンソール: Google Cloud Console → Artifact Registry → プロジェクト `ledger-muse` / リージョン `asia-northeast1` を選択し、`ledger-muse` リポジトリが表示されることを確認
+  - **Backend API Service Account (タスク2.5)**
+    1. (Artifact Registryと同じ `terraform/environments/staging` ディレクトリで) `terraform init` を再実行して `modules/iam` を取得
+    2. `terraform plan -var-file=../../common.auto.tfvars`
+    3. `terraform apply -var-file=../../common.auto.tfvars`
+    4. `module "backend_api_service_account"` が `modules/iam` を呼び出し、`backend_api_service_account_roles` に Firestore/Storage/PubSub + Service Usage のロールを付与（Vision API はまだ最小構成のため省略。必要になったら tfvars 側で追加可能）
+    5. CLI: `gcloud iam service-accounts list --project=ledger-muse | grep backend-api-staging-sa`
+    6. コンソール: Google Cloud Console → IAM と管理 → サービスアカウント → プロジェクト `ledger-muse` で `backend-api-staging-sa` が存在し、該当ロールが付与されていることを確認
+    7. Cloud Run (タスク2.6) ではこの SA のメールアドレスを参照する
   - モジュールを追加したらこのガイドに用途と順序を追記する
 
 ## モジュールカタログ

@@ -1,0 +1,14 @@
+service_account_id           = "terraform-runner"
+service_account_display_name = "Terraform Runner"
+
+# Terraform で管理するリソースに必要な最小ロールを設定
+project_roles = [
+  # state バケット操作（後で state_admin_members にも登録推奨）
+  "roles/storage.objectAdmin",
+
+  # 例: インフラ構築で必要になりうる権限（必要最小限に調整）
+  # "roles/artifactregistry.admin",
+  # "roles/run.admin",
+  # "roles/iam.serviceAccountAdmin",
+  # "roles/iam.serviceAccountUser",
+]

@@ -1,0 +1,4 @@
+## Steering sync (2025-11-19)
+- tech.md: Added IaC implementation snapshot (Terraform apphosting SA roles, WIF OIDC GitHub pool/provider with deploy SA roles), noted tests/*.sh guardrails coverage of CI/firebase, and CI pipeline specifics (Node 20, Go 1.23, paths-filter, frontend deploy via Firebase App Hosting, backend deploy planned for Cloud Run). updated_at set to 2025-11-19.
+- structure.md: Updated Terraform section to reflect apphosting/wif modules, tfvars examples, local tfstate with upcoming remote-state/workspace design; added Quality Guardrails & CI section describing tests/*.sh as lint-style checks of workflows/deps; updated updated_at to 2025-11-19.
+- Drift note: Terraform still using local state; need remote state/workspace design before further module expansion (storage/pubsub/etc.) and deployment automation.

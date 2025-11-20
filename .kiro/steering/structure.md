@@ -28,8 +28,13 @@
 ### Infrastructure as Code
 **Location**: `/terraform`  
 **Purpose**: 環境別(dev/stg/prod)ワークスペースとモジュール分割(identity, firestore, storage, pubsub, tasks, monitoring, ci)。  
-**Current**: まだ .gitkeep のみ。モジュール化時はパターンに従い、remote state/環境分離を最初に設計する。  
-**Example**: `/terraform/modules/storage` を複数環境から再利用し、remote state を統一管理。
+**Current**: モジュールが進行中。`terraform/apphosting` で Firebase App Hosting デプロイ用の SA + 付与ロールを管理、`terraform/wif` で GitHub OIDC (Workload Identity Pool/Provider) とデプロイ SA のロール付与（`roles/run.admin`, `roles/artifactregistry.writer`, `roles/iam.serviceAccountUser` など）を定義。tfvars.example で入力例を提示。tfstate はローカルに置かれており、環境分離・remote state 設計を次ステップで行う前提。  
+**Example**: `terraform/wif` の provider/pool/provider を増やしつつ、workspace 単位で remote state と backend を揃え、各サービスモジュール(storage/pubsub 等)を再利用する。
+
+### Quality Guardrails & CI
+**Location**: `/tests`（bash ガードレール）  
+**Purpose**: CI 定義や主要スクリプトの存在・設定を lint 的に確認する。`tests/ci.test.sh` は `.github/workflows/ci.yml` の jobs/path-filter/言語バージョン(Node20, Go1.23)・ firebase.json を検証。`frontend.test.sh` / `backend.test.sh` は依存と主要コマンドをチェック。  
+**Pattern**: 新規ワークフローや主要スクリプトを追加したら対応するガードレールをこのディレクトリに追加する。
 
 ### Docs & Specs
 **Location**: `/docs`, `/.kiro/specs/household-finance-app`  
@@ -60,4 +65,4 @@ import { useReceiptForm } from './hooks/useReceiptForm'; // 同一ドメイン�
 - インフラは環境分離と最小権限 IAM を前提に、モジュール再利用と remote state で一貫性を確保。
 - 新規ディレクトリやモジュールは既存パターン(feature-first UI、レイヤード API、モジュール化 IaC)に従えば steering 更新不要。
 
-updated_at: 2025-11-18
+updated_at: 2025-11-19

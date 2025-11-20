@@ -17,12 +17,14 @@
 
 - フロント: Next.js 15 (App Router) + React 18 + Tailwind。TS `strict` 有効、`@/*` パスエイリアスを `tsconfig.json` で定義。Vitest + RTL + JSDOM を `frontend/test/setup.ts` 経由でセットアップ。
 - バックエンド: Go 1.23 + Echo 4.11。`cmd/api` でブートし、`internal/{adapter/http,application,domain,port}` に層分離。ヘルスチェックは `pkg/version` から注入したバージョンを返すサービス経由で実装。
-- テスト/ガードレール: `/tests/*.sh` で最低限の構成・依存・スクリプトを検証。新規追加時もスクリプトや主要依存をここに反映させる。
+- インフラ: Terraform 1.6+。`terraform/apphosting` で Firebase App Hosting 用デプロイ SA を作成し必要ロールを付与、`terraform/wif` で GitHub OIDC（Workload Identity Pool/Provider）とデプロイ用 SA を定義し、`roles/run.admin` 等の役割を付与。
+- テスト/ガードレール: `/tests/*.sh` で最低限の構成・依存・スクリプトを検証（CI 定義や firebase 設定も含む）。新規追加時もスクリプトや主要依存をここに反映させる。
 
 ## Key Libraries / Services
 
 - Google Cloud: Identity Platform, Cloud Storage, Firestore, Cloud Vision API, Pub/Sub, Cloud Tasks, Cloud Build/Monitoring, Artifact Registry
-- IaC: Terraform（モジュール化と環境別ワークスペースを前提）
+- Firebase: App Hosting（フロントのホスティング）
+- IaC: Terraform（モジュール化と環境別ワークスペースを前提、WIF/OIDC を用いた GitHub Actions からの権限移譲）
 
 ## Development Standards
 
@@ -34,6 +36,7 @@
 - フロント: ESLint + Prettier を採用予定
 - バックエンド: gofmt / go vet を最低限実行
 - セキュリティ: IAM 最小権限、TLS 前提、秘密情報のコード同梱禁止
+- CI: GitHub Actions `CI/CD Pipeline` が main/develop の push/pr 時に発火し、paths-filter で frontend/backend を判定。Node 20 / Go 1.23 を前提に lint, type-check, test, build を実行（フロントは Firebase App Hosting 連携でデプロイは別管理、バックエンドのデプロイは今後 Cloud Run 予定）。
 
 ### Testing
 - フロント: Vitest/React Testing Library を想定
@@ -67,4 +70,4 @@ terraform fmt && terraform plan  # 環境別 workspace 前提で実行
 - 非同期パイプラインでアップロードと OCR を疎結合化し、遅延吸収と拡張を容易にする
 - 環境分離と最小権限設計を前提に、商用化に向けたセキュリティと監視を初期から考慮
 
-updated_at: 2025-11-18
+updated_at: 2025-11-19

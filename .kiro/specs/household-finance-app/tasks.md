@@ -83,7 +83,7 @@ Phase 0では、以下の3つの基盤を構築します：
 
 ---
 
-- [ ] 2.1 リモートステートバケット作成（Terraform Bootstrap）
+- [x] 2.1 リモートステートバケット作成（Terraform Bootstrap）
   - **前提条件**: GCPプロジェクト作成済み、Terraform CLI インストール済み
   - `google_storage_bucket` で Terraform ステート用バケット作成（バージョニング有効化）
   - IAM 最小権限設定（開発者に `roles/storage.objectAdmin`）
@@ -96,9 +96,12 @@ Phase 0では、以下の3つの基盤を構築します：
       --uniform-bucket-level-access
     ```
   - **注意**: 初回のみ手動実行、または bootstrap 用 Terraform で作成
+  - **メモ (2025-11-19)**:
+    - `terraform/bootstrap` に state バケット作成手順・テストを追加し、`common.auto.tfvars` から `region` を受け取れるよう修正。
+    - Terraform Runner 専用 SA モジュール (`terraform/iam-runner`) とドキュメントを追加し、runner を `state_admin_members` に追加して `GOOGLE_IMPERSONATE_SERVICE_ACCOUNT` で Terraform を実行する運用を整理。
   - _Requirements: 17.1, 17.2_
 
-- [ ] 2.2 Terraform プロジェクト初期化とWIF state移行
+- [x] 2.2 Terraform プロジェクト初期化とWIF state移行
   - **前提条件**: タスク2.1完了、既存WIF（`terraform/wif/`）がデプロイ済み
   - Terraform バージョン指定（v1.9.x）、`terraform/provider.tf` 作成（既存の場合はスキップ）
   - 環境分離構造作成（`terraform/environments/staging/`, `terraform/environments/prod/`）
@@ -135,9 +138,13 @@ Phase 0では、以下の3つの基盤を構築します：
     - `terraform init` が成功、"Successfully configured the backend" メッセージ確認
     - `gsutil ls gs://{project-id}-terraform-state/wif/` でstateファイル確認
     - `terraform state list` で既存リソースがリストされることを確認
+  - **メモ (2025-11-20)**:
+    - `terraform/backend.tf` と `terraform/provider.tf` を追加し、GCS backend (`ledger-muse-478602-terraform-state/global`) と Terraform 1.9 系の required_version を共通化。
+    - `terraform/environments/{staging,prod}` ディレクトリを新設し、今後の環境別 root モジュールの置き場とする README を配置。
+    - `terraform/wif/backend.tf` を追加し `terraform init -migrate-state` で GCS backend に移行するドキュメント (`docs/terraform/wif.md`) とテスト (`tests/terraform-remote-state.test.sh`) を更新。
   - _Requirements: 17.1, 17.2, 17.3_
 
-- [ ] 2.3 (P) Terraform モジュール作成（基本リソース）
+- [x] 2.3 (P) Terraform モジュール作成（基本リソース）
   - **前提条件**: タスク2.2完了
   - **既存モジュール**: `terraform/wif/` - Workload Identity Federation（デプロイ済み、移行のみ）
   - **新規作成モジュール**:
@@ -150,9 +157,12 @@ Phase 0では、以下の3つの基盤を構築します：
     - `modules/iam/` は Backend API用のService Accountを作成（WIF Deployer SAとは別物）
   - **成果物**: `terraform/modules/` 配下のモジュールファイル（`main.tf`, `variables.tf`, `outputs.tf`）
   - **検証方法**: `terraform validate` で各モジュールの構文チェック
+  - **メモ (2025-11-20)**:
+    - Artifact Registry / IAM / Cloud Run / Storage の 4 モジュールを設計書通りに作成し、`tests/terraform-modules.test.sh` で存在と主要属性を検証。
+    - `docs/terraform/README.md` にモジュール一覧を追記して参照先を一元化。
   - _Requirements: 17.5_
 
-- [ ] 2.4 (P) Artifact Registry リポジトリ作成（Terraform apply）
+- [x] 2.4 (P) Artifact Registry リポジトリ作成（Terraform apply）
   - **前提条件**: タスク2.3完了
   - `terraform/environments/staging/main.tf` で `artifact-registry` モジュールを呼び出し
   - `asia-northeast1` に Docker リポジトリ `ledger-muse` を作成
@@ -166,16 +176,20 @@ Phase 0では、以下の3つの基盤を構築します：
     # ledger-muse リポジトリが存在することを確認
     ```
   - **重要**: このタスク完了後、CI/CDでDockerイメージをプッシュ可能になる
+  - **メモ (2025-11-20)**:
+    - `terraform/environments/staging` に backend/provider/variables/main/outputs を作成し、Artifact Registry モジュールを呼び出して `ledger-muse` リポジトリをデプロイできるようにした。
+    - `tests/terraform-environments.test.sh` を追加して環境ルート構成とモジュール呼び出しを検証。`docs/terraform/README.md` に実行手順を追記。
   - _Requirements: 12.1, 15.10_
 
-- [ ] 2.5 Backend API サービスアカウント作成（Terraform apply）
+- [x] 2.5 Backend API サービスアカウント作成（Terraform apply）
   - **前提条件**: タスク2.3完了
   - `terraform/environments/staging/main.tf` で `iam` モジュールを呼び出し
   - Backend API用サービスアカウント作成（`backend-api-staging-sa`）
   - **WIF Deployer SAとの違い**:
     - `github-deployer`: GitHub Actionsがデプロイ時に使用（既存）
     - `backend-api-staging-sa`: Cloud Runで実行時に使用（新規作成）
-  - 必要な権限付与（`roles/datastore.user`, `roles/storage.objectAdmin`, `roles/cloudvision.user`, `roles/pubsub.publisher`）
+  - 必要な権限付与（`roles/datastore.user`, `roles/storage.objectAdmin`, `roles/pubsub.publisher`, `roles/serviceusage.serviceUsageConsumer`）  
+    - ※ Cloud Vision API 専用ロールは現在提供されていないため、将来必要であれば tfvars で追加する
   - **成果物**: サービスアカウント、IAMポリシーバインディング
   - **検証方法**:
     ```bash
@@ -184,9 +198,13 @@ Phase 0では、以下の3つの基盤を構築します：
     ```
   - **重要**: このタスク完了後、Cloud Runデプロイ時にサービスアカウントを指定可能
   - **注意**: Workload Identity Federationの設定は不要（既存WIFで対応済み）
+  - **メモ (2025-11-20)**:
+    - `terraform/environments/staging/main.tf` で `module "backend_api_service_account"` を追加し、`modules/iam` から SA 作成＋IAM 付与を自動化。
+    - `variables.tf` に `backend_api_service_account_{id,display_name,roles}` を追加し、Firestore/Storage/Vision/PubSub のロールをデフォルトで持たせた。
+    - `outputs.tf` で SA の email を出力し、Cloud Run (2.6) から参照しやすいように整理。`docs/terraform/README.md` に実行手順を追記。
   - _Requirements: 11.1, 11.2, 12.1_
 
-- [ ] 2.6 Staging 環境 Cloud Run 初期定義（Terraform apply）
+- [x] 2.6 Staging 環境 Cloud Run 初期定義（Terraform apply）
   - **前提条件**: タスク2.4, 2.5完了
   - `terraform/environments/staging/main.tf` で `cloud-run` モジュールを呼び出し
   - Cloud Run サービス作成（`ledger-muse-api-staging`）
@@ -204,6 +222,10 @@ Phase 0では、以下の3つの基盤を構築します：
     # プレースホルダーアプリからのレスポンスを確認
     ```
   - **注意**: 以降のデプロイはGitHub Actionsで更新（既存WIF Deployer SAを使用）
+  - **メモ (2025-11-20)**:
+    - `terraform/environments/staging` に `module "backend_api_cloud_run"` を追加し、Cloud Run モジュールへサービス名/イメージ/スケール閾値/ENVを tfvars ベースで渡せるようにした。
+    - 変数・outputs を追加し、`module.backend_api_service_account.service_account_email` をそのまま実行コンテキストに渡す構成に整理。
+    - `tests/terraform-environments.test.sh` へ Cloud Run ブロック検証を追加し、`docs/terraform/README.md` に plan/apply 手順 + CLI/コンソール確認手順を追記。
   - _Requirements: 12.1, 12.7, 12.12_
 
 - [ ] 2.7* Queue/Async 基盤スキャフォールド（Terraform）

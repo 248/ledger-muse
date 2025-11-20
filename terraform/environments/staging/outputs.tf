@@ -12,3 +12,8 @@ output "backend_api_service_account_email" {
   description = "Email of the backend API service account for staging"
   value       = module.backend_api_service_account.service_account_email
 }
+
+output "backend_api_cloud_run_service_url" {
+  description = "URL of the staging backend API Cloud Run service"
+  value       = module.backend_api_cloud_run.service_url
+}

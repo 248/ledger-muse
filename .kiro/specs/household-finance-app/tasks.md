@@ -204,7 +204,7 @@ Phase 0では、以下の3つの基盤を構築します：
     - `outputs.tf` で SA の email を出力し、Cloud Run (2.6) から参照しやすいように整理。`docs/terraform/README.md` に実行手順を追記。
   - _Requirements: 11.1, 11.2, 12.1_
 
-- [ ] 2.6 Staging 環境 Cloud Run 初期定義（Terraform apply）
+- [x] 2.6 Staging 環境 Cloud Run 初期定義（Terraform apply）
   - **前提条件**: タスク2.4, 2.5完了
   - `terraform/environments/staging/main.tf` で `cloud-run` モジュールを呼び出し
   - Cloud Run サービス作成（`ledger-muse-api-staging`）
@@ -222,6 +222,10 @@ Phase 0では、以下の3つの基盤を構築します：
     # プレースホルダーアプリからのレスポンスを確認
     ```
   - **注意**: 以降のデプロイはGitHub Actionsで更新（既存WIF Deployer SAを使用）
+  - **メモ (2025-11-20)**:
+    - `terraform/environments/staging` に `module "backend_api_cloud_run"` を追加し、Cloud Run モジュールへサービス名/イメージ/スケール閾値/ENVを tfvars ベースで渡せるようにした。
+    - 変数・outputs を追加し、`module.backend_api_service_account.service_account_email` をそのまま実行コンテキストに渡す構成に整理。
+    - `tests/terraform-environments.test.sh` へ Cloud Run ブロック検証を追加し、`docs/terraform/README.md` に plan/apply 手順 + CLI/コンソール確認手順を追記。
   - _Requirements: 12.1, 12.7, 12.12_
 
 - [ ] 2.7* Queue/Async 基盤スキャフォールド（Terraform）

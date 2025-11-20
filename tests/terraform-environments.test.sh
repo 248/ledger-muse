@@ -27,7 +27,7 @@ assert_file "$staging_dir/backend.tf"
 assert_file "$staging_dir/provider.tf"
 assert_file "$staging_dir/variables.tf"
 
-assert_contains "$staging_dir/backend.tf" 'bucket[[:space:]]*=[[:space:]]*"ledger-muse-terraform-state"'
+# bucket は -backend-config で指定するため、ハードコードチェックは削除
 assert_contains "$staging_dir/backend.tf" 'prefix[[:space:]]*=[[:space:]]*"environments/staging"'
 
 assert_contains "$staging_dir/provider.tf" 'provider[[:space:]]+"google"'

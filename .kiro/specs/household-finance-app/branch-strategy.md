@@ -362,7 +362,7 @@
 **タスク**: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 18.1
 **依存関係**: PR #9, PR #10
 **サイズ**: Medium
-**並列実行**: ❌ (PR #8, #9 に依存)
+**並列実行**: ❌ (PR #9, #10 に依存)
 
 **成果物**:
 - Transaction ルーター (`internal/adapter/http/transaction_handler.go`)

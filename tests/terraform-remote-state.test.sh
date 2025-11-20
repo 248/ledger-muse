@@ -37,14 +37,14 @@ assert_file "$provider_tf"
 assert_file "$wif_backend_tf"
 
 assert_contains "$backend_tf" 'backend "gcs"'
-assert_contains "$backend_tf" 'bucket[[:space:]]*=[[:space:]]*"ledger-muse-terraform-state"'
+# bucket は -backend-config で指定するため、ハードコードチェックは削除
 assert_contains "$backend_tf" 'prefix[[:space:]]*=[[:space:]]*"global"'
 
 assert_contains "$provider_tf" 'required_version[[:space:]]*=[[:space:]]*">= 1.9.0, < 2.0.0"'
 assert_contains "$provider_tf" 'provider "google"'
 
 assert_contains "$wif_backend_tf" 'backend "gcs"'
-assert_contains "$wif_backend_tf" 'bucket[[:space:]]*=[[:space:]]*"ledger-muse-terraform-state"'
+# bucket は -backend-config で指定するため、ハードコードチェックは削除
 assert_contains "$wif_backend_tf" 'prefix[[:space:]]*=[[:space:]]*"wif"'
 
 assert_dir "terraform/environments"

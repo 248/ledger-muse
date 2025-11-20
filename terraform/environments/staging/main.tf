@@ -13,6 +13,21 @@ resource "google_project_service" "cloudrun" {
   disable_on_destroy = false
 }
 
+# 将来のPhaseで使用予定のAPI（Phase 3: Datastore、Phase 4: Pub/Sub）
+resource "google_project_service" "datastore" {
+  project = var.project_id
+  service = "datastore.googleapis.com"
+
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "pubsub" {
+  project = var.project_id
+  service = "pubsub.googleapis.com"
+
+  disable_on_destroy = false
+}
+
 # Artifact Registry
 module "artifact_registry" {
   source = "../../modules/artifact-registry"

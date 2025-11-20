@@ -1,3 +1,19 @@
+# API有効化
+resource "google_project_service" "artifactregistry" {
+  project = var.project_id
+  service = "artifactregistry.googleapis.com"
+
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "cloudrun" {
+  project = var.project_id
+  service = "run.googleapis.com"
+
+  disable_on_destroy = false
+}
+
+# Artifact Registry
 module "artifact_registry" {
   source = "../../modules/artifact-registry"
 
@@ -5,6 +21,8 @@ module "artifact_registry" {
   region       = var.region
   repository_id = var.artifact_registry_repository_id
   description   = var.artifact_registry_description
+
+  depends_on = [google_project_service.artifactregistry]
 }
 
 module "backend_api_service_account" {
@@ -29,4 +47,6 @@ module "backend_api_cloud_run" {
   max_instances        = var.backend_api_cloud_run_max_instances
   memory               = var.backend_api_cloud_run_memory
   cpu                  = var.backend_api_cloud_run_cpu
+
+  depends_on = [google_project_service.cloudrun]
 }

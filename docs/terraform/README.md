@@ -3,7 +3,7 @@
 目的: Terraform 手順を一本化し、共通前提と実行順序を示します。各モジュール固有の詳細は近接する README に記載し、このガイドからリンクします。
 
 ## 共通前提
-- Terraform 1.9.0〜1.x (tested on 1.13.5) / google provider 5.x
+- Terraform 1.9.0〜1.x / google provider 5.x
 - `terraform/common.auto.tfvars` に `project_id` / `region` を設定（`common.auto.tfvars.example` をコピーして編集）
 - `terraform init/plan/apply` 実行時は `-var-file=../common.auto.tfvars` を添付
 

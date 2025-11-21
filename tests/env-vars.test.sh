@@ -23,14 +23,14 @@ assert_grep() {
 # Frontend env template
 assert_file "frontend/.env.local.example"
 assert_grep "^NEXT_PUBLIC_BACKEND_API_BASE=http://localhost:8080" frontend/.env.local.example
-assert_grep "^NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=localhost:8080" frontend/.env.local.example
+assert_grep "^NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=localhost:9000" frontend/.env.local.example
 assert_grep "^NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=http://localhost:9099" frontend/.env.local.example
 
 # Backend env template
 assert_file "backend/.env.example"
 assert_grep "^FIREBASE_PROJECT_ID=demo-no-project" backend/.env.example
-assert_grep "^FIRESTORE_EMULATOR_HOST=localhost:8080" backend/.env.example
-assert_grep "^FIREBASE_AUTH_EMULATOR_HOST=http://localhost:9099" backend/.env.example
+assert_grep "^FIRESTORE_EMULATOR_HOST=firebase-emulators:8080" backend/.env.example
+assert_grep "^FIREBASE_AUTH_EMULATOR_HOST=firebase-emulators:9099" backend/.env.example
 
 # README documentation
 assert_grep "^## 環境変数" README.md

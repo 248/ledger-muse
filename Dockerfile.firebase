@@ -1,4 +1,4 @@
-FROM andreysenov/firebase-tools:latest
+FROM andreysenov/firebase-tools:13.13.1
 
 WORKDIR /workspace
 

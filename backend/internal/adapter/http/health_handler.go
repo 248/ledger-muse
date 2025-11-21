@@ -21,7 +21,6 @@ type HealthHandler struct {
 }
 
 // Get handles GET /health requests.
-// Hot reload test - ホットリロードのテスト
 func (h *HealthHandler) Get(c echo.Context) error {
 	status := h.svc.Status()
 	return c.JSON(http.StatusOK, status)

@@ -9,6 +9,8 @@ services:
       - /app/tmp
     ports:
       - "8080:8080"
+    env_file:
+      - ./backend/.env
     environment:
       - GO111MODULE=on
       - AIR_WATCH_DELAY=1000

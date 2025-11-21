@@ -12,6 +12,7 @@ concurrency:
 jobs:
   cleanup-backend-preview:
     name: Delete Backend Preview Service
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: read

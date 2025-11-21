@@ -70,7 +70,7 @@ cat terraform.tfvars
 # 存在しない場合は作成
 cat > terraform.tfvars <<EOF
 project_id = "ledger-muse"
-region     = "asia-northeast1"
+region     = "asia-east1"
 EOF
 
 # Terraform 初期化と適用
@@ -139,8 +139,8 @@ rm ~/firebase-apphosting-key.json
 **Backend ID**は、Firebase App Hostingで作成される各バックエンド環境の一意の識別子です。
 
 **Backend IDの形式:**
-- URLフォーマット: `{backend-id}--{project-id}.us-central1.hosted.app`
-- 例: `ledger-muse-prod--ledger-muse.us-central1.hosted.app`
+- URLフォーマット: `{backend-id}--{project-id}.asia-east1.hosted.app`
+- 例: `ledger-muse-prod--ledger-muse.asia-east1.hosted.app`
   - Backend ID: `ledger-muse-prod`
   - Project ID: `ledger-muse`
 
@@ -157,7 +157,7 @@ rm ~/firebase-apphosting-key.json
 3. **Backend情報を確認**
    - 各バックエンドのカードに以下が表示されます：
      - **Backend name** (これがBackend ID)
-     - **URL**: `{backend-id}--{project-id}.us-central1.hosted.app`
+     - **URL**: `{backend-id}--{project-id}.asia-east1.hosted.app`
      - **Git branch**: 連携しているブランチ名
      - **Last deployed**: 最終デプロイ日時
 
@@ -188,8 +188,8 @@ firebase apphosting:backends:list --project ledger-muse
 ┌────────────────────┬──────────────────────────────────────────────────┬──────────┐
 │ Backend ID         │ URL                                              │ Branch   │
 ├────────────────────┼──────────────────────────────────────────────────┼──────────┤
-│ ledger-muse-prod   │ ledger-muse-prod--ledger-muse.us-central1...     │ main     │
-│ ledger-muse-staging│ ledger-muse-staging--ledger-muse.us-central1...  │ develop  │
+│ ledger-muse-prod   │ ledger-muse-prod--ledger-muse.asia-east1...      │ main     │
+│ ledger-muse-staging│ ledger-muse-staging--ledger-muse.asia-east1...   │ develop  │
 └────────────────────┴──────────────────────────────────────────────────┴──────────┘
 ```
 
@@ -205,7 +205,7 @@ firebase apphosting:backends:describe ledger-muse-prod --project ledger-muse
 # Cloud Runサービスとして確認（App HostingはCloud Runを使用）
 gcloud run services list \
   --platform managed \
-  --region us-central1 \
+  --region asia-east1 \
   --filter="metadata.labels.firebase-app-hosting-backend:*"
 ```
 
@@ -230,12 +230,12 @@ Firebase App HostingのBackendは、以下の方法で作成できます：
 # 新しいBackendを作成
 firebase apphosting:backends:create \
   --project ledger-muse \
-  --location us-central1
+  --location asia-east1
 
 # ブランチを指定してBackendを作成
 firebase apphosting:backends:create \
   --project ledger-muse \
-  --location us-central1 \
+  --location asia-east1 \
   --git-branch main
 ```
 
@@ -299,7 +299,7 @@ GitHub Actions `.github/workflows/ci.yml` で必要な Secrets/設定:
 cd terraform/wif
 
 # 必要な値を取得
-export GCP_PROJECT_ID=$(grep 'project_id' ../common.auto.tfvars | cut -d'"' -f2)
+export GCP_PROJECT_ID=$(awk -F'"' '/project_id/ {print $2}' ../common.auto.tfvars)
 export WIF_PROVIDER=$(terraform output -raw wif_provider_name)
 export WIF_SERVICE_ACCOUNT=$(terraform output -raw service_account_email)
 

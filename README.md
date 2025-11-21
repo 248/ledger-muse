@@ -12,10 +12,49 @@
 
 - まずは各ディレクトリに実装を追加し、`tests/structure.test.sh` が通ることを確認してください。
 
-## ローカル開発 (Firebase Emulator Suite)
+## ローカル開発 (Docker Compose)
 
-- 前提: `npm install -g firebase-tools` で Firebase CLI を用意します。
-- 実験フラグ: App Hosting を含む設定のため `firebase experiments:enable webframeworks` を 1 度だけ実行してください。
-- プロジェクト指定: 実プロジェクト ID またはデモ ID を指定します（例: `--project demo-no-project`）。一度設定する場合は `firebase use --add` で選択可能。
-- 起動: `firebase emulators:start --only auth,firestore,storage,pubsub --project demo-no-project` を実行すると、UI が http://localhost:4000 で立ち上がります。
-- ポート: Auth 9099 / Firestore 8080 / Storage 9199 / Pub/Sub 8085 / Emulator UI 4000。
+Docker Composeを使用してbackend + Firebase Emulatorを一括で起動できます。
+
+### 必要なツール
+
+- Docker Desktop または Colima + Docker
+  - macOS (Colima): `brew install colima docker docker-compose`
+  - Colima 初期化:
+    ```bash
+    colima start \
+      --cpu 2 \
+      --memory 4 \
+      --mount /Volumes/develop:w
+    ```
+    ※ `/Volumes/develop:w` はプロジェクトのパスに応じて調整してください（`:w`は書き込み可能の意味）
+
+### 起動方法
+
+```bash
+# コンテナのビルドと起動
+docker-compose up --build -d
+
+# ログの確認
+docker-compose logs -f
+
+# 停止
+docker-compose down
+```
+
+### アクセス先
+
+- **Backend API**: http://localhost:8080/health
+- **Firebase Emulator UI**: http://localhost:4000
+- **Firebase Auth**: http://localhost:9099
+- **Firebase Firestore**: http://localhost:9000 (内部では8080)
+- **Firebase Storage**: http://localhost:9199
+- **Firebase Pub/Sub**: http://localhost:8085
+
+### 開発時の注意
+
+- **backendホットリロード**: `air`によるホットリロードが有効（ポーリングモード）
+  - ファイルを変更すると自動的にリビルド・再起動されます
+  - `.air.toml`で`poll = true`を設定済み
+- **Firebase設定ファイル**: `firebase.json`, `firestore.rules`, `storage.rules`
+- **Colimaマウント**: ホットリロードを有効にするため、プロジェクトディレクトリをマウントして起動してください

@@ -1,31 +1,29 @@
 {
-  "hosting": {
-    "source": "frontend",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ]
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
   },
   "emulators": {
     "auth": {
-      "host": "127.0.0.1",
+      "host": "0.0.0.0",
       "port": 9099
     },
     "firestore": {
-      "host": "127.0.0.1",
+      "host": "0.0.0.0",
       "port": 8080
     },
     "storage": {
-      "host": "127.0.0.1",
+      "host": "0.0.0.0",
       "port": 9199
     },
     "pubsub": {
-      "host": "127.0.0.1",
+      "host": "0.0.0.0",
       "port": 8085
     },
     "ui": {
-      "host": "127.0.0.1",
+      "host": "0.0.0.0",
       "port": 4000
     }
   }

@@ -1,0 +1,26 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - /app/tmp
+    ports:
+      - "8080:8080"
+    environment:
+      - GO111MODULE=on
+      - AIR_WATCH_DELAY=1000
+
+  firebase-emulators:
+    build:
+      context: .
+      dockerfile: Dockerfile.firebase
+    working_dir: /workspace
+    ports:
+      - "9099:9099"
+      - "9000:8080"
+      - "9199:9199"
+      - "8085:8085"
+      - "4000:4000"

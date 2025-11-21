@@ -413,7 +413,7 @@ gh secret list
   - **検証方法**: `firebase emulators:start` で起動、http://localhost:4000 でUI確認
   - _Requirements: 9.1, 12.2_
 
-- [ ] 5.2 Docker Compose 環境構築（Colima + Docker）
+- [x] 5.2 Docker Compose 環境構築（Colima + Docker）
   - **前提条件**: なし
   - Colima、Docker、Docker Compose のインストール（Homebrew）
   - Colima の初期設定（CPU 4、メモリ 8GB、ディスク 60GB）

@@ -21,7 +21,7 @@ bin/
 dist/
 coverage.out
 *.test
-.air.toml
+backend/tmp/
 
 # Terraform
 .terraform/
@@ -39,4 +39,5 @@ firebase-debug.log*
 firestore-debug.log*
 pubsub-debug.log*
 ui-debug.log*
+storage-debug.log*
 .firebase/

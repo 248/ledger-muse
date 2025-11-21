@@ -20,6 +20,7 @@ jobs:
     env:
       REGION: asia-northeast1
       PREVIEW_PREFIX: ledger-muse-api-pr-
+      ARTIFACT_REPOSITORY: ledger-muse
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
     steps:
       - name: Authenticate to Google Cloud
@@ -61,23 +62,26 @@ jobs:
       - name: Delete Artifact Registry images
         if: steps.delete.outputs.status == 'deleted'
         run: |
-          REPOSITORY="ledger-muse"
+          set -euo pipefail
           SERVICE_NAME="${PREVIEW_PREFIX}${{ github.event.pull_request.number }}"
-          IMAGE_PATH="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${REPOSITORY}/${SERVICE_NAME}"
+          REPOSITORY_PATH="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPOSITORY }}"
 
-          echo "Checking for container images: $IMAGE_PATH"
+          echo "Searching for image digests under ${REPOSITORY_PATH}/${SERVICE_NAME}"
+          mapfile -t DIGESTS < <(gcloud artifacts docker images list "${REPOSITORY_PATH}" \
+            --filter="package:${SERVICE_NAME}" \
+            --format="value(artifactUri)" 2>/dev/null || true)
 
-          # List all image versions for this service
-          if gcloud artifacts docker images list "$IMAGE_PATH" \
-            --format="get(package)" 2>/dev/null | grep -q .; then
-
-            echo "Deleting all versions of $IMAGE_PATH"
-            gcloud artifacts docker images delete "$IMAGE_PATH" \
-              --delete-tags \
-              --quiet 2>/dev/null || echo "No images to delete or already deleted"
-          else
-            echo "No container images found for $SERVICE_NAME"
+          if [ ${#DIGESTS[@]} -eq 0 ]; then
+            echo "No images found for ${SERVICE_NAME}"
+            exit 0
           fi
+
+          for URI in "${DIGESTS[@]}"; do
+            echo "Deleting image ${URI}"
+            gcloud artifacts docker images delete "${URI}" \
+              --delete-tags \
+              --quiet || echo "Image ${URI} already deleted"
+          done
 
       - name: Comment cleanup status
         uses: peter-evans/create-or-update-comment@v4

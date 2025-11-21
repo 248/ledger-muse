@@ -122,6 +122,12 @@ jobs:
       STAGING_SERVICE_ACCOUNT: backend-api-staging-sa
       PRODUCTION_SERVICE_ACCOUNT: backend-api-prod-sa
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      CLOUD_RUN_MEMORY: 512Mi
+      CLOUD_RUN_CPU: "1"
+      CLOUD_RUN_TIMEOUT: "60"
+      CLOUD_RUN_MIN_INSTANCES: "0"
+      CLOUD_RUN_MAX_INSTANCES: "10"
+      CLOUD_RUN_CONCURRENCY: "80"
     steps:
       - uses: actions/checkout@v4
 
@@ -130,6 +136,7 @@ jobs:
         run: |
           set -euo pipefail
           EVENT="$GITHUB_EVENT_NAME"
+          PREVIEW_PREFIX="${{ env.PREVIEW_PREFIX }}"
           SHA="$GITHUB_SHA"
           PR_NUMBER=$(jq -r '.pull_request.number // .number // ""' "$GITHUB_EVENT_PATH")
           if [ "$EVENT" = "pull_request" ]; then
@@ -184,12 +191,12 @@ jobs:
             --allow-unauthenticated \
             --service-account "${{ steps.deploy-meta.outputs.runtime_service_account }}" \
             --set-env-vars "ENV=${{ steps.deploy-meta.outputs.deploy_env }}" \
-            --memory 512Mi \
-            --cpu 1 \
-            --timeout 60 \
-            --min-instances 0 \
-            --max-instances 10 \
-            --concurrency 80 \
+            --memory "${{ env.CLOUD_RUN_MEMORY }}" \
+            --cpu "${{ env.CLOUD_RUN_CPU }}" \
+            --timeout "${{ env.CLOUD_RUN_TIMEOUT }}" \
+            --min-instances "${{ env.CLOUD_RUN_MIN_INSTANCES }}" \
+            --max-instances "${{ env.CLOUD_RUN_MAX_INSTANCES }}" \
+            --concurrency "${{ env.CLOUD_RUN_CONCURRENCY }}" \
             --quiet
           DEPLOY_URL=$(gcloud run services describe "${{ steps.deploy-meta.outputs.service_name }}" \
             --project "${{ env.PROJECT_ID }}" \

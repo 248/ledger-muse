@@ -424,7 +424,7 @@ gh secret list
   - **検証方法**: `colima start`, `docker compose up` で起動確認
   - _Requirements: 12.1, 12.12_
 
-- [ ] 5.3 環境変数設定
+- [x] 5.3 環境変数設定
   - **前提条件**: タスク1.2, 1.3完了
   - Frontend `.env.local` の作成（API URL、エミュレーターホスト、NextAuth設定）
   - Backend `.env` の作成（エミュレーターホスト、GCP プロジェクトID）

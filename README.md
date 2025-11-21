@@ -58,3 +58,41 @@ docker-compose down
   - `.air.toml`で`poll = true`を設定済み
 - **Firebase設定ファイル**: `firebase.json`, `firestore.rules`, `storage.rules`
 - **Colimaマウント**: ホットリロードを有効にするため、プロジェクトディレクトリをマウントして起動してください
+
+## 環境変数
+
+### テンプレートの配置
+
+- フロントエンド: `frontend/.env.local.example` をコピーして `frontend/.env.local` を作成
+- バックエンド: `backend/.env.example` をコピーして `backend/.env` を作成
+
+### 推奨設定（ローカル + エミュレータ）
+
+`frontend/.env.local`
+
+```
+NEXT_PUBLIC_BACKEND_API_BASE=http://localhost:8080
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=demo-no-project
+NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=http://localhost:9099
+NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=localhost:8080
+NEXT_PUBLIC_FIREBASE_STORAGE_EMULATOR_HOST=http://localhost:9199
+```
+
+`backend/.env`
+
+```
+PORT=8080
+GO_ENV=local
+FIREBASE_PROJECT_ID=demo-no-project
+FIREBASE_AUTH_EMULATOR_HOST=http://localhost:9099
+FIRESTORE_EMULATOR_HOST=localhost:8080
+STORAGE_EMULATOR_HOST=http://localhost:9199
+PUBSUB_EMULATOR_HOST=localhost:8085
+```
+
+### よくあるハマりどころ（Firebase Emulator）
+
+- **Javaが無い**: `java -version` で失敗する場合、JDK をインストールして PATH を通す
+- **webframeworks が有効でない**: `firebase experiments:enable webframeworks` を実行（Firebase Hosting を Emulator する場合のみ）
+- **プロジェクト未指定エラー**: `firebase emulators:start --project demo-no-project --only auth,firestore,storage,pubsub` のように `--project` を明示
+- **docker compose の --build フラグエラー**: Compose v2 では `docker compose up -d --build`（または `docker-compose up --build -d`）を使用

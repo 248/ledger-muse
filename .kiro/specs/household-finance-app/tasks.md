@@ -403,7 +403,7 @@ gh secret list
 
 **実施目的**: GCPに接続せずにローカルでフルスタック開発を可能にする。
 
-- [ ] 5.1 Firebase Emulator Suite のセットアップ
+- [x] 5.1 Firebase Emulator Suite のセットアップ
   - **前提条件**: タスク1.2完了
   - Firebase CLI のインストール
   - `firebase init emulators` による初期化

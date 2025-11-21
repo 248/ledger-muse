@@ -32,8 +32,11 @@ Docker Composeを使用してbackend + Firebase Emulatorを一括で起動でき
 ### 起動方法
 
 ```bash
-# コンテナのビルドと起動
-docker-compose up --build -d
+# コンテナのビルドと起動 (Docker Compose v2)
+docker compose up -d --build
+
+# Docker Compose v1 の場合
+# docker-compose up --build -d
 
 # ログの確認
 docker-compose logs -f
@@ -58,6 +61,16 @@ docker-compose down
   - `.air.toml`で`poll = true`を設定済み
 - **Firebase設定ファイル**: `firebase.json`, `firestore.rules`, `storage.rules`
 - **Colimaマウント**: ホットリロードを有効にするため、プロジェクトディレクトリをマウントして起動してください
+
+### フロントエンドの起動
+
+フロントエンドはホストで起動します。
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
 ## 環境変数
 

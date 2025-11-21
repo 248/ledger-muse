@@ -433,7 +433,7 @@ gh secret list
   - **検証方法**: `.env` ファイル読み込み確認、環境変数が正しく設定されている
   - _Requirements: 11.8_
 
-- [ ] 5.4 ローカル環境の起動確認
+- [x] 5.4 ローカル環境の起動確認
   - **前提条件**: タスク5.1, 5.2, 5.3完了
   - `colima start` でDocker環境起動
   - `docker compose up -d` でBackend + Emulator起動

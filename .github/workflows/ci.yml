@@ -104,6 +104,140 @@ jobs:
       - name: Build
         run: go build -v ./...
 
+  deploy-backend:
+    name: Deploy Backend to Cloud Run
+    needs: [changes, backend-quality]
+    if: |
+      needs.changes.outputs.backend == 'true' &&
+      (github.event_name == 'pull_request' || github.event_name == 'push') &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    env:
+      REGION: asia-northeast1
+      ARTIFACT_REPOSITORY: ledger-muse
+      STAGING_SERVICE: ledger-muse-api-staging
+      PRODUCTION_SERVICE: ledger-muse-api-prod
+      PREVIEW_PREFIX: ledger-muse-api-pr-
+      STAGING_SERVICE_ACCOUNT: backend-api-staging-sa
+      PRODUCTION_SERVICE_ACCOUNT: backend-api-prod-sa
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      CLOUD_RUN_MEMORY: 512Mi
+      CLOUD_RUN_CPU: "1"
+      CLOUD_RUN_TIMEOUT: "60"
+      CLOUD_RUN_MIN_INSTANCES: "0"
+      CLOUD_RUN_MAX_INSTANCES: "10"
+      CLOUD_RUN_CONCURRENCY: "80"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine deployment metadata
+        id: deploy-meta
+        run: |
+          set -euo pipefail
+          EVENT="$GITHUB_EVENT_NAME"
+          PREVIEW_PREFIX="${{ env.PREVIEW_PREFIX }}"
+          SHA="$GITHUB_SHA"
+          PR_NUMBER=$(jq -r '.pull_request.number // .number // ""' "$GITHUB_EVENT_PATH")
+          if [ "$EVENT" = "pull_request" ]; then
+            SERVICE_NAME="${PREVIEW_PREFIX}${PR_NUMBER}"
+            DEPLOY_ENV="preview"
+            RUNTIME_SA="${STAGING_SERVICE_ACCOUNT}@${PROJECT_ID}.iam.gserviceaccount.com"
+          else
+            BRANCH="${GITHUB_REF_NAME:-${GITHUB_REF##*/}}"
+            if [ "$BRANCH" = "main" ]; then
+              SERVICE_NAME="$PRODUCTION_SERVICE"
+              DEPLOY_ENV="production"
+              RUNTIME_SA="${PRODUCTION_SERVICE_ACCOUNT}@${PROJECT_ID}.iam.gserviceaccount.com"
+            else
+              SERVICE_NAME="$STAGING_SERVICE"
+              DEPLOY_ENV="staging"
+              RUNTIME_SA="${STAGING_SERVICE_ACCOUNT}@${PROJECT_ID}.iam.gserviceaccount.com"
+            fi
+          fi
+          IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${ARTIFACT_REPOSITORY}/${SERVICE_NAME}:${SHA}"
+          echo "service_name=$SERVICE_NAME" >> "$GITHUB_OUTPUT"
+          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+          echo "deploy_env=$DEPLOY_ENV" >> "$GITHUB_OUTPUT"
+          echo "runtime_service_account=$RUNTIME_SA" >> "$GITHUB_OUTPUT"
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Configure Artifact Registry auth
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push backend image
+        run: |
+          docker build -t "${{ steps.deploy-meta.outputs.image_uri }}" backend
+          docker push "${{ steps.deploy-meta.outputs.image_uri }}"
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        run: |
+          gcloud run deploy "${{ steps.deploy-meta.outputs.service_name }}" \
+            --project "${{ env.PROJECT_ID }}" \
+            --region "${{ env.REGION }}" \
+            --image "${{ steps.deploy-meta.outputs.image_uri }}" \
+            --platform managed \
+            --allow-unauthenticated \
+            --service-account "${{ steps.deploy-meta.outputs.runtime_service_account }}" \
+            --set-env-vars "ENV=${{ steps.deploy-meta.outputs.deploy_env }}" \
+            --memory "${{ env.CLOUD_RUN_MEMORY }}" \
+            --cpu "${{ env.CLOUD_RUN_CPU }}" \
+            --timeout "${{ env.CLOUD_RUN_TIMEOUT }}" \
+            --min-instances "${{ env.CLOUD_RUN_MIN_INSTANCES }}" \
+            --max-instances "${{ env.CLOUD_RUN_MAX_INSTANCES }}" \
+            --concurrency "${{ env.CLOUD_RUN_CONCURRENCY }}" \
+            --quiet
+          DEPLOY_URL=$(gcloud run services describe "${{ steps.deploy-meta.outputs.service_name }}" \
+            --project "${{ env.PROJECT_ID }}" \
+            --region "${{ env.REGION }}" \
+            --format 'value(status.url)')
+          echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Health Check with Retry
+        run: |
+          max_attempts=30
+          attempt=0
+          echo "Starting health check for ${{ steps.deploy.outputs.url }}/health"
+          while [ $attempt -lt $max_attempts ]; do
+            if curl -fsSL "${{ steps.deploy.outputs.url }}/health"; then
+              echo "✓ Health check passed on attempt $((attempt + 1))"
+              exit 0
+            fi
+            attempt=$((attempt + 1))
+            echo "Attempt $attempt/$max_attempts failed, retrying in 2 seconds..."
+            sleep 2
+          done
+          echo "✗ Health check failed after $max_attempts attempts"
+          exit 1
+
+      - name: Comment preview URL
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.number }}
+          identifier: backend-preview
+          body: |
+            ### 🚀 Backend Preview Deployed
+
+            **API URL**: ${{ steps.deploy.outputs.url }}
+            **Health Check**: ${{ steps.deploy.outputs.url }}/health
+
+            This preview will be available until the PR is closed.
+
   # Note: Frontend deployment to Firebase App Hosting is handled by GitHub integration
   # PR previews and production deployments are automatically triggered by Firebase App Hosting
   # This CI pipeline only performs quality checks for frontend

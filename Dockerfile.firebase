@@ -7,4 +7,4 @@ COPY firebase.json .
 COPY firestore.rules .
 COPY storage.rules .
 
-CMD ["firebase", "emulators:start", "--only", "auth,firestore,storage,pubsub", "--project", "demo-no-project"]
+CMD ["firebase", "emulators:start", "--only", "auth,firestore,storage,pubsub,ui", "--project", "demo-no-project"]

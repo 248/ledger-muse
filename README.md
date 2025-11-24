@@ -32,7 +32,10 @@ Docker Composeを使用してbackend + Firebase Emulatorを一括で起動でき
 ### 起動方法
 
 ```bash
-# コンテナのビルドと起動 (Docker Compose v2)
+# 1. 環境変数ファイルを作成
+cp backend/.env.example backend/.env
+
+# 2. コンテナのビルドと起動 (Docker Compose v2)
 docker compose up -d --build
 
 # ログの確認
@@ -111,7 +114,7 @@ GO_ENV=local
 FIREBASE_PROJECT_ID=demo-no-project
 FIREBASE_AUTH_EMULATOR_HOST=firebase-emulators:9099
 FIRESTORE_EMULATOR_HOST=firebase-emulators:8080
-STORAGE_EMULATOR_HOST=firebase-emulators:9199
+FIREBASE_STORAGE_EMULATOR_HOST=firebase-emulators:9199
 PUBSUB_EMULATOR_HOST=firebase-emulators:8085
 ```
 

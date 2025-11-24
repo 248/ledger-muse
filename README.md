@@ -35,8 +35,19 @@ Docker Composeを使用してbackend + Firebase Emulatorを一括で起動でき
 # コンテナのビルドと起動 (Docker Compose v2)
 docker compose up -d --build
 
-# Docker Compose v1 の場合
-# docker-compose up --build -d
+# ログの確認
+docker compose logs -f
+
+# 停止
+docker compose down
+```
+
+<details>
+<summary>Docker Compose v1 の場合</summary>
+
+```bash
+# コンテナのビルドと起動
+docker-compose up --build -d
 
 # ログの確認
 docker-compose logs -f
@@ -44,6 +55,7 @@ docker-compose logs -f
 # 停止
 docker-compose down
 ```
+</details>
 
 ### アクセス先
 

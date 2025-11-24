@@ -22,7 +22,7 @@ assert_grep() {
 
 assert_file "docker-compose.yml"
 assert_file "backend/Dockerfile.dev"
-assert_file ".air.toml"
+assert_file "backend/.air.toml"
 
 # docker-compose.yml checks
 assert_grep "^services:" docker-compose.yml
@@ -45,7 +45,7 @@ assert_grep "WORKDIR /app" backend/Dockerfile.dev
 assert_grep "CMD \\[\"air\", \"-c\", \".air.toml\"\\]" backend/Dockerfile.dev
 
 # .air.toml checks
-assert_grep "^cmd = \"go build -o ./tmp/main ./cmd/api\"" .air.toml
-assert_grep "^bin = \"./tmp/main\"" .air.toml
+assert_grep "^cmd = \"go build -o ./tmp/main ./cmd/api\"" backend/.air.toml
+assert_grep "^bin = \"./tmp/main\"" backend/.air.toml
 
 exit $fail

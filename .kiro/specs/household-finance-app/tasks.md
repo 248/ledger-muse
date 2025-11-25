@@ -523,7 +523,7 @@ gh secret list
   - _Requirements: 12.1, 12.7, 15.10_
 
 - [ ] 8. エンドツーエンド統合確認
-- [ ] 8.1 ローカル環境での Frontend-Backend 統合
+- [x] 8.1 ローカル環境での Frontend-Backend 統合
   - Frontend（localhost:3000）から Backend（localhost:8080）への API 呼び出し
   - CORS エラーの解消確認
   - レスポンスデータの表示確認

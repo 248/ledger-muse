@@ -19,6 +19,7 @@
 - バックエンド: Go 1.23 + Echo 4.11。`cmd/api` でブートし、`internal/{adapter/http,application,domain,port}` に層分離。ヘルスチェックは `pkg/version` から注入したバージョンを返すサービス経由で実装。
 - インフラ: Terraform 1.9 系 root (`terraform/backend.tf`) が GCS リモートステートを前提に `prefix = {global,wif,environments/<env>}` を切り替え、`terraform/bootstrap` が `${project}-terraform-state` バケット＋ state 管理 IAM を作成。`terraform/environments/{staging,prod}` で Artifact Registry → Backend API SA → Cloud Run を `modules/{artifact-registry,iam,cloud-run,storage}` へ接続し、`apphosting` / `iam-runner` / `wif` で各デプロイ用 SA・WIF 設定を個別管理。
 - テスト/ガードレール: `/tests/*.sh` で最低限の構成・依存・スクリプトを検証（CI 定義や firebase 設定も含む）。新規追加時もスクリプトや主要依存をここに反映させる。
+- CI/CD: `.github/workflows/ci.yml` が `paths-filter` で frontend/backend を判定し、Node 20 / Go 1.23 で lint/type-check/test/build/coverage を実行。バックエンドは Artifact Registry へビルド・Push → Cloud Run へ preview/staging/production デプロイを WIF 認証で行い、ヘルスチェックまで自動化。フロントのデプロイは Firebase App Hosting 連携に委譲。
 
 ## Key Libraries / Services
 
@@ -29,7 +30,7 @@
 ## Development Standards
 
 ### Type Safety
-- TypeScript は strict 前提で any を極力禁止
+- TypeScript は strict 前提で any を極力禁止。型検証は `npm run type-check`（tsc --noEmit）を基準に実施
 - Go は静的型を活用し、コンテキスト渡しを徹底
 
 ### Code Quality
@@ -47,6 +48,11 @@
 
 ### Required Tools
 - Node.js（LTS）, Go（安定版）, Terraform, gcloud CLI
+
+### Local Development
+- `docker compose up -d --build` で backend + Firebase Emulator Suite(auth/firestore/storage/pubsub/ui) を起動し、backend は `air` によるホットリロードで `/backend` をマウントして再ビルド
+- frontend はホストで `npm install && npm run dev` を実行し、`.env.local.example` / `backend/.env.example` をコピーして emulator 接続設定を有効化
+- Colima 利用時はプロジェクトパスを `--mount <path>:w` で書き込みマウントしてファイル変更を伝搬させる
 
 ### Terraform Workflow
 1. `terraform/bootstrap`（>=1.6）で `${project}-terraform-state` バケットと state 管理 IAM を作成。
@@ -76,4 +82,4 @@ terraform -chdir=terraform/environments/staging plan -var-file=../../common.auto
 - 非同期パイプラインでアップロードと OCR を疎結合化し、遅延吸収と拡張を容易にする
 - 環境分離と最小権限設計を前提に、商用化に向けたセキュリティと監視を初期から考慮
 
-updated_at: 2025-11-20
+updated_at: 2025-11-25

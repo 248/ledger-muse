@@ -558,7 +558,8 @@ gh secret list
   - ローカル環境でのエミュレーター接続確認
   - _Requirements: 1.1, 11.1_
 
-- [ ] 10. Frontend 認証機能実装\n- [ ] 10.1 NextAuth.js v5 のセットアップ
+- [ ] 10. Frontend 認証機能実装
+- [ ] 10.1 NextAuth.js v5 のセットアップ
   - NextAuth.js v5 のインストール
   - `app/api/auth/[...nextauth]/route.ts` の作成
   - Google Provider の設定（クライアントID、シークレット）
@@ -591,7 +592,8 @@ gh secret list
   - セッション有効期限の設定
   - _Requirements: 1.7_
 
-- [ ] 11. Backend JWT 検証ミドルウェア実装\n- [ ] 11.1 JWT ミドルウェアの実装
+- [ ] 11. Backend JWT 検証ミドルウェア実装
+- [ ] 11.1 JWT ミドルウェアの実装
   - Authorization ヘッダーからトークン抽出
   - Firebase Admin SDK による JWT 検証
   - トークン検証失敗時の 401 エラーレスポンス
@@ -609,7 +611,8 @@ gh secret list
   - エラーログの記録
   - _Requirements: 1.4, 10.5, 11.9_
 
-- [ ] 12. 認証機能のテスト\n- [ ] 12.1* Frontend 認証フローの Unit テスト
+- [ ] 12. 認証機能のテスト
+- [ ] 12.1* Frontend 認証フローの Unit テスト
   - ログインコンポーネントのテスト
   - セッション状態管理のテスト
   - API クライアント（認証付き）のテスト
@@ -1125,7 +1128,9 @@ gh secret list
   - CSV エクスポート
   - _Requirements: 8.1, 8.4, 8.5, 8.7, 15.10_
 
-## Phase 7: 運用・監視機能実装\n\n- [ ] 35. ログ・監視機能実装（Backend）
+## Phase 7: 運用・監視機能実装
+
+- [ ] 35. ログ・監視機能実装（Backend）
 - [ ] 35.1 構造化ログの実装
   - JSON 形式のログ出力
   - ログレベル設定（INFO、WARN、ERROR）
@@ -1148,7 +1153,8 @@ gh secret list
   - コスト > 予算でアラート
   - _Requirements: 15.4, 21.4_
 
-- [ ] 36. セキュリティ強化\n- [ ] 36.1 HTTPS 強制の実装
+- [ ] 36. セキュリティ強化
+- [ ] 36.1 HTTPS 強制の実装
   - Cloud Run での HTTPS 設定
   - HTTP → HTTPS リダイレクト
   - _Requirements: 11.3, 11.4_
@@ -1175,7 +1181,8 @@ gh secret list
   - 5回連続失敗でアカウントロック
   - _Requirements: 11.7_
 
-- [ ] 37. パフォーマンス最適化\n- [ ] 37.1 API パフォーマンステスト
+- [ ] 37. パフォーマンス最適化
+- [ ] 37.1 API パフォーマンステスト
   - JMeter または Locust によるロードテスト
   - 95 パーセンタイル < 1 秒の確認
   - _Requirements: 20.1_
@@ -1190,7 +1197,8 @@ gh secret list
   - LCP < 2.5 秒の確認
   - _Requirements: 20.3_
 
-- [ ] 38. Production 環境セットアップ\n- [ ] 38.1 Production 環境の Terraform 定義
+- [ ] 38. Production 環境セットアップ
+- [ ] 38.1 Production 環境の Terraform 定義
   - `terraform/environments/prod/main.tf` の作成
   - Production 固有変数（`prod.tfvars`）
   - 本番用リソース設定（スケーリング、冗長性）

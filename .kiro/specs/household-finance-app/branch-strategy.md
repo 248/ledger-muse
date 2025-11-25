@@ -67,9 +67,9 @@
 | #18 | `feature/memo-knowledge` | 5 | 28.1-28.4, 29.1-29.4, 30.1-30.3 | Medium | ❌ | PR #12 |
 | #19 | `feature/search-functionality` | 6 | 31.1, 31.2, 33.1, 33.2, 35.1, 35.3 | Medium | ✅ | PR #18 |
 | #20 | `feature/report-functionality` | 6 | 32.1, 32.2, 33.3, 33.4, 35.2, 35.4 | Medium | ✅ | PR #18 |
-| #21 | `ops/logging-monitoring` | 7 | 36.1-36.4 | Medium | ✅ | PR #11 |
-| #22 | `ops/security-hardening` | 7 | 37.1-36.5 | Medium | ✅ | PR #8 |
-| #23 | `ops/performance-optimization` | 7 | 38.1-38.3 | Small | ❌ | PR #20 |
+| #21 | `ops/logging-monitoring` | 7 | 35.1-35.4 | Medium | ✅ | PR #11 |
+| #22 | `ops/security-hardening` | 7 | 36.1-36.5 | Medium | ✅ | PR #8 |
+| #23 | `ops/performance-optimization` | 7 | 37.1-37.3 | Small | ❌ | PR #20 |
 | #24 | `ops/production-setup` | 7 | 38.1-38.3 | Medium | ❌ | PR #21, #22, #23 |
 
 ---

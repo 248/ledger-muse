@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	adapterhttp "github.com/ledger-muse/backend/internal/adapter/http"
 	apphealth "github.com/ledger-muse/backend/internal/application/health"
 
 	"github.com/labstack/echo/v4"
@@ -35,9 +34,8 @@ func TestCORSPreflightAllowsAllOrigins(t *testing.T) {
 
 func TestHTTPErrorHandlerReturnsJSON(t *testing.T) {
 	e := newServer(apphealth.NewService("test"))
-	adapterhttp.RegisterHealthRoutes(e, apphealth.NewService("test"))
 
-	e.GET("/boom", func(c echo.Context) error {
+	e.GET("/boom", func(_ echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "bad request")
 	})
 

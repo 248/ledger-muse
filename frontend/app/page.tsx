@@ -43,6 +43,7 @@ export default function HomePage() {
         const data = (await res.json()) as HealthStatus;
         setHealth(data);
       } catch (err) {
+        console.error("Health check failed:", err);
         setError("バックエンドへの接続に失敗しました");
       } finally {
         setLoading(false);

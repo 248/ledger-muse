@@ -95,7 +95,9 @@ func newServer(healthService *apphealth.Service) *echo.Echo {
 		}
 
 		if !c.Response().Committed {
-			_ = c.JSON(status, map[string]string{"message": msg})
+			if err := c.JSON(status, map[string]string{"message": msg}); err != nil {
+				c.Logger().Error(err)
+			}
 		}
 	}
 

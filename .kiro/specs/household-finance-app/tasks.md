@@ -529,10 +529,11 @@ gh secret list
   - レスポンスデータの表示確認
   - _Requirements: 10.3, 11.6_
 
-- [ ] 8.2 Staging 環境での Frontend-Backend 統合
+- [x] 8.2 Staging 環境での Frontend-Backend 統合
   - Firebase App Hosting（Frontend）から Cloud Run（Backend）への API 呼び出し
   - HTTPS 通信の確認
   - レスポンスタイムの確認（< 1秒）
+  - **確認手順**: `docs/staging-integration.md` に疎通手順と curl コマンドを記載（App Hosting 環境変数設定→フロント表示で「バックエンド: OK」確認→ `/health` を HTTPS で <1s チェック）
   - _Requirements: 11.3, 11.4, 20.1_
 
 - [ ] 8.3* E2E テストの初期実装

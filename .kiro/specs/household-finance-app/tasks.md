@@ -471,13 +471,13 @@ gh secret list
 ## Phase 1: Hello World デプロイ
 
 - [ ] 6. Frontend 最小実装とデプロイ
-- [ ] 6.1 (P) トップページ作成
+- [x] 6.1 (P) トップページ作成
   - `app/page.tsx` の実装（Hello World メッセージ）
   - ローカル環境での動作確認（`npm run dev`）
   - レスポンシブデザインの確認（モバイル、タブレット、デスクトップ）
   - _Requirements: 13.1, 13.2_
 
-- [ ] 6.2 Backend API 呼び出しの実装
+- [x] 6.2 Backend API 呼び出しの実装
   - Backend ヘルスチェック API 呼び出し
   - `fetch` による API リクエスト
   - ローディング状態の表示

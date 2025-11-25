@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -19,13 +20,8 @@ import (
 )
 
 func main() {
-	e := echo.New()
-	e.HideBanner = true
-	e.Use(middleware.Recover())
-	e.Pre(middleware.RemoveTrailingSlash())
-
 	healthService := apphealth.NewService(version.Version)
-	adapterhttp.RegisterHealthRoutes(e, healthService)
+	e := newServer(healthService)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -52,4 +48,57 @@ func gracefulShutdown(e *echo.Echo) {
 	if err := e.Shutdown(ctx); err != nil {
 		log.Printf("graceful shutdown error: %v", err)
 	}
+}
+
+func newServer(healthService *apphealth.Service) *echo.Echo {
+	e := echo.New()
+	e.HideBanner = true
+
+	e.Pre(middleware.RemoveTrailingSlash())
+	e.Use(middleware.Recover())
+	e.Use(middleware.Logger())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodDelete,
+			http.MethodOptions,
+		},
+		AllowHeaders: []string{
+			echo.HeaderContentType,
+			echo.HeaderAuthorization,
+			echo.HeaderAccept,
+		},
+	}))
+
+	e.HTTPErrorHandler = func(err error, c echo.Context) {
+		var (
+			he     *echo.HTTPError
+			status = http.StatusInternalServerError
+			msg    = http.StatusText(http.StatusInternalServerError)
+		)
+
+		if errors.As(err, &he) {
+			status = he.Code
+			switch val := he.Message.(type) {
+			case string:
+				msg = val
+			case error:
+				msg = val.Error()
+			default:
+				msg = http.StatusText(status)
+			}
+		} else if err != nil {
+			msg = err.Error()
+		}
+
+		if !c.Response().Committed {
+			_ = c.JSON(status, map[string]string{"message": msg})
+		}
+	}
+
+	adapterhttp.RegisterHealthRoutes(e, healthService)
+	return e
 }

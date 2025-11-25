@@ -484,55 +484,58 @@ gh secret list
   - エラーハンドリング
   - _Requirements: 10.3, 13.3_
 
-- [ ] 6.3 Firebase App Hosting へのデプロイ
-  - GitHub へのプッシュ
-  - 自動デプロイの確認
-  - Staging 環境での動作確認
-  - Preview URL の動作確認
+- [x] 6.3 Firebase App Hosting へのデプロイ
+  - **完了済み**: タスク3.2「Firebase App Hosting の GitHub 統合」で完了
+  - GitHub統合により、PRプレビューと本番デプロイが自動化されています
+  - 追加の手動デプロイ作業は不要です
   - _Requirements: 13.1, 15.10_
 
 - [ ] 7. Backend 最小実装とデプロイ
-- [ ] 7.1 (P) ヘルスチェックエンドポイント実装
+- [x] 7.1 (P) ヘルスチェックエンドポイント実装
   - `GET /health` エンドポイント作成
   - レスポンス形式（JSON: status、version）
   - ローカル環境での動作確認（`go run cmd/api/main.go`）
+  - **実装済み**: `backend/internal/adapter/http/health_handler.go`、`backend/cmd/api/main.go`で実装済み
   - _Requirements: 10.2, 10.3, 15.5_
 
-- [ ] 7.2 Echo サーバーの基本設定
+- [x] 7.2 Echo サーバーの基本設定
   - Echo インスタンスの初期化
   - CORS ミドルウェアの設定
   - ロガーミドルウェアの設定
   - エラーハンドリングミドルウェアの設定
   - ポート設定（環境変数 `PORT` から取得、デフォルト 8080）
+  - **実装状況**: 5項目すべて完了（CORS/Logger/カスタムHTTPエラーハンドラを main.go で実装）
   - _Requirements: 10.1, 11.6, 15.1_
 
-- [ ] 7.3 Dockerfile の作成
+- [x] 7.3 Dockerfile の作成
   - マルチステージビルド（ビルドステージ + ランタイムステージ）
   - distroless ベースイメージの使用（セキュリティ）
   - 最小限のレイヤー構成
+  - **実装済み**: backend/Dockerfileが存在し、本番用マルチステージビルドが完成
   - _Requirements: 12.1, 16.1_
 
-- [ ] 7.4 Cloud Run へのデプロイ
+- [x] 7.4 Cloud Run へのデプロイ
   - Artifact Registry へのイメージプッシュ
   - Cloud Run サービス作成（Staging環境）
   - 環境変数の設定
   - デプロイ確認（`curl https://api-staging.example.com/health`）
+  - **完了済み**: タスク4.1「Cloud Run デプロイワークフロー実装」でCI/CD自動化済み
   - _Requirements: 12.1, 12.7, 15.10_
 
-- [ ] 9. エンドツーエンド統合確認
-- [ ] 9.1 ローカル環境での Frontend-Backend 統合
+- [ ] 8. エンドツーエンド統合確認
+- [ ] 8.1 ローカル環境での Frontend-Backend 統合
   - Frontend（localhost:3000）から Backend（localhost:8080）への API 呼び出し
   - CORS エラーの解消確認
   - レスポンスデータの表示確認
   - _Requirements: 10.3, 11.6_
 
-- [ ] 9.2 Staging 環境での Frontend-Backend 統合
+- [ ] 8.2 Staging 環境での Frontend-Backend 統合
   - Firebase App Hosting（Frontend）から Cloud Run（Backend）への API 呼び出し
   - HTTPS 通信の確認
   - レスポンスタイムの確認（< 1秒）
   - _Requirements: 11.3, 11.4, 20.1_
 
-- [ ] 9.3* E2E テストの初期実装
+- [ ] 8.3* E2E テストの初期実装
   - Playwright のセットアップ
   - Hello World ページの表示テスト
   - Backend API 呼び出しテスト
@@ -554,74 +557,70 @@ gh secret list
   - ローカル環境でのエミュレーター接続確認
   - _Requirements: 1.1, 11.1_
 
-- [ ] 10. Frontend 認証機能実装
-- [ ] 9.1 NextAuth.js v5 のセットアップ
+- [ ] 10. Frontend 認証機能実装\n- [ ] 10.1 NextAuth.js v5 のセットアップ
   - NextAuth.js v5 のインストール
   - `app/api/auth/[...nextauth]/route.ts` の作成
   - Google Provider の設定（クライアントID、シークレット）
   - Session Provider の設定
   - _Requirements: 1.1, 1.2_
 
-- [ ] 9.2 ログインページの作成
+- [ ] 10.2 ログインページの作成
   - `app/login/page.tsx` の実装
   - Google ログインボタンの配置
   - ログイン状態の確認
   - リダイレクト処理（ログイン成功時にダッシュボードへ）
   - _Requirements: 1.3, 13.1_
 
-- [ ] 9.3 ログアウト機能の実装
+- [ ] 10.3 ログアウト機能の実装
   - ログアウトボタンの配置
   - NextAuth.js の `signOut` 関数呼び出し
   - ログイン画面へのリダイレクト
   - _Requirements: 1.5_
 
-- [ ] 9.4 保護されたルートの作成
+- [ ] 10.4 保護されたルートの作成
   - `app/dashboard/page.tsx` の作成（認証必須ページ）
   - ミドルウェアによる認証チェック（`middleware.ts`）
   - 未認証ユーザーのログインページへのリダイレクト
   - セッション情報の表示（ユーザー名、メールアドレス）
   - _Requirements: 1.3, 1.7, 11.2_
 
-- [ ] 9.5 セッション管理の実装
+- [ ] 10.5 セッション管理の実装
   - セッションの自動更新設定
   - トークンリフレッシュロジック
   - セッション有効期限の設定
   - _Requirements: 1.7_
 
-- [ ] 11. Backend JWT 検証ミドルウェア実装
-- [ ] 10.1 JWT ミドルウェアの実装
+- [ ] 11. Backend JWT 検証ミドルウェア実装\n- [ ] 11.1 JWT ミドルウェアの実装
   - Authorization ヘッダーからトークン抽出
   - Firebase Admin SDK による JWT 検証
   - トークン検証失敗時の 401 エラーレスポンス
   - ユーザーID の抽出と Context への設定
   - _Requirements: 1.3, 10.6, 11.1_
 
-- [ ] 10.2 保護されたエンドポイントの作成
-  - `GET /api/v1/me` エンドポイント実装
+- [ ] 11.2 保護されたエンドポイントの作成\n  - `GET /api/v1/me` エンドポイント実装
   - JWT ミドルウェアの適用
   - ユーザー情報の返却（userId、email）
   - _Requirements: 1.3, 10.2, 11.2_
 
-- [ ] 10.3 認証エラーハンドリング
+- [ ] 11.3 認証エラーハンドリング
   - 無効なトークンのエラーレスポンス（401）
   - トークン期限切れのエラーレスポンス（401）
   - エラーログの記録
   - _Requirements: 1.4, 10.5, 11.9_
 
-- [ ] 12. 認証機能のテスト
-- [ ] 11.1* Frontend 認証フローの Unit テスト
+- [ ] 12. 認証機能のテスト\n- [ ] 12.1* Frontend 認証フローの Unit テスト
   - ログインコンポーネントのテスト
   - セッション状態管理のテスト
   - API クライアント（認証付き）のテスト
   - _Requirements: 1.2, 1.3_
 
-- [ ] 11.2* Backend JWT ミドルウェアの Unit テスト
+- [ ] 12.2* Backend JWT ミドルウェアの Unit テスト
   - 有効なトークンの検証テスト
   - 無効なトークンの検証テスト
   - トークン欠落時のテスト
   - _Requirements: 1.3, 10.6_
 
-- [ ] 11.3 認証フローの E2E テスト
+- [ ] 12.3 認証フローの E2E テスト
   - ログインフローのテスト（Playwright）
   - ダッシュボードアクセステスト（認証必須）
   - ログアウトフローのテスト
@@ -630,20 +629,20 @@ gh secret list
 
 ## Phase 3: 取引CRUD機能実装
 
-- [ ] 12. Transaction ドメイン層実装（Backend）
-- [ ] 12.1 (P) Transaction エンティティ定義
+- [ ] 13. Transaction ドメイン層実装（Backend）
+- [ ] 13.1 (P) Transaction エンティティ定義
   - `internal/domain/transaction.go` の作成
   - Transaction 構造体の定義（ID、UserID、Amount、Type、CategoryID、Date、Description、CreatedAt、UpdatedAt）
   - バリデーションロジック（金額 > 0、Type は "income" または "expense"）
   - _Requirements: 2.1, 2.6_
 
-- [ ] 12.2 (P) TransactionRepository Port の定義
+- [ ] 13.2 (P) TransactionRepository Port の定義
   - `internal/port/transaction_repository.go` の作成
   - インターフェース定義（Create、FindByID、FindByUserID、Update、Delete、List）
   - ページネーション対応（Limit、Offset）
   - _Requirements: 2.2, 9.3_
 
-- [ ] 12.3 TransactionService の実装
+- [ ] 13.3 TransactionService の実装
   - `internal/application/transaction_service.go` の作成
   - Create メソッド（バリデーション、Repository 呼び出し、変更履歴記録）
   - Update メソッド（変更履歴記録）
@@ -651,14 +650,14 @@ gh secret list
   - List メソッド（ユーザー単位のデータ隔離）
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.8_
 
-- [ ] 13. Firestore Adapter 実装（Backend）
-- [ ] 13.1 Firestore クライアント初期化
+- [ ] 14. Firestore Adapter 実装（Backend）
+- [ ] 14.1 Firestore クライアント初期化
   - `internal/adapter/firestore/client.go` の作成
   - Firestore クライアントの初期化（環境変数による切り替え、エミュレーター対応）
   - エラーハンドリング
   - _Requirements: 9.1, 9.4_
 
-- [ ] 13.2 TransactionRepository Adapter の実装
+- [ ] 14.2 TransactionRepository Adapter の実装
   - `internal/adapter/firestore/transaction_repository.go` の作成
   - `users/{userId}/transactions/{transactionId}` コレクション構造
   - Create メソッド（ドキュメント作成）
@@ -668,34 +667,34 @@ gh secret list
   - Delete メソッド（論理削除フラグ設定）
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 9.1, 9.8_
 
-- [ ] 13.3 Firestore トランザクション処理
+- [ ] 14.3 Firestore トランザクション処理
   - トランザクション境界の実装
   - データ整合性の保証
   - エラー時のロールバック
   - _Requirements: 9.5_
 
-- [ ] 14. Transaction API 実装（Backend）
-- [ ] 14.1 Transaction ルーターの作成
+- [ ] 15. Transaction API 実装（Backend）
+- [ ] 15.1 Transaction ルーターの作成
   - `internal/adapter/http/transaction_handler.go` の作成
   - ルーティング定義（`POST /api/v1/transactions`, `GET /api/v1/transactions`, `GET /api/v1/transactions/:id`, `PUT /api/v1/transactions/:id`, `DELETE /api/v1/transactions/:id`）
   - JWT ミドルウェアの適用
   - _Requirements: 2.1, 2.2, 10.2, 10.6_
 
-- [ ] 14.2 CreateTransaction エンドポイント実装
+- [ ] 15.2 CreateTransaction エンドポイント実装
   - リクエストボディのパース
   - バリデーション（必須項目チェック）
   - TransactionService 呼び出し
   - レスポンス返却（201 Created）
   - _Requirements: 2.1, 2.5, 10.4_
 
-- [ ] 14.3 GetTransactions エンドポイント実装
+- [ ] 15.3 GetTransactions エンドポイント実装
   - クエリパラメータ取得（page、limit、sort）
   - ユーザーID によるフィルタリング
   - TransactionService 呼び出し
   - レスポンス返却（200 OK）
   - _Requirements: 2.2, 2.8, 10.4_
 
-- [ ] 14.4 UpdateTransaction エンドポイント実装
+- [ ] 15.4 UpdateTransaction エンドポイント実装
   - パスパラメータ取得（transactionId）
   - リクエストボディのパース
   - ユーザー権限チェック（自分の取引のみ更新可能）
@@ -703,46 +702,46 @@ gh secret list
   - レスポンス返却（200 OK）
   - _Requirements: 2.3, 11.2, 10.4_
 
-- [ ] 14.5 DeleteTransaction エンドポイント実装
+- [ ] 15.5 DeleteTransaction エンドポイント実装
   - パスパラメータ取得（transactionId）
   - ユーザー権限チェック
   - TransactionService 呼び出し（論理削除）
   - レスポンス返却（204 No Content）
   - _Requirements: 2.4, 11.2, 10.4_
 
-- [ ] 14.6 (P) API ログ記録の実装
+- [ ] 15.6 (P) API ログ記録の実装
   - リクエスト/レスポンスログの記録
   - エラーログの記録
   - 構造化ログ（JSON 形式）
   - _Requirements: 10.8, 15.1, 15.2_
 
-- [ ] 15. Category ドメイン実装（Backend）
-- [ ] 15.1 (P) Category エンティティ定義
+- [ ] 16. Category ドメイン実装（Backend）
+- [ ] 16.1 (P) Category エンティティ定義
   - `internal/domain/category.go` の作成
   - Category 構造体（ID、UserID、Name、Type、Color、CreatedAt、UpdatedAt）
   - _Requirements: 3.1, 3.5_
 
-- [ ] 15.2 (P) CategoryRepository Port と Adapter の実装
+- [ ] 16.2 (P) CategoryRepository Port と Adapter の実装
   - `internal/port/category_repository.go` の作成
   - Firestore Adapter（`users/{userId}/categories/{categoryId}`）
   - CRUD メソッド実装
   - _Requirements: 3.1, 3.2, 9.1_
 
-- [ ] 15.3 CategoryService の実装
+- [ ] 16.3 CategoryService の実装
   - `internal/application/category_service.go` の作成
   - Create、Update、Delete メソッド
   - Delete 時の使用チェック（TransactionRepository 参照）
   - デフォルトカテゴリの初期登録ロジック
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.6_
 
-- [ ] 15.4 Category API 実装
+- [ ] 16.4 Category API 実装
   - `internal/adapter/http/category_handler.go` の作成
   - `POST /api/v1/categories`, `GET /api/v1/categories`, `PUT /api/v1/categories/:id`, `DELETE /api/v1/categories/:id`
   - JWT ミドルウェア適用
   - _Requirements: 3.1, 3.2, 3.3, 10.2_
 
-- [ ] 16. Frontend 取引管理 UI 実装
-- [ ] 16.1 取引一覧ページの作成
+- [ ] 17. Frontend 取引管理 UI 実装
+- [ ] 17.1 取引一覧ページの作成
   - `app/transactions/page.tsx` の実装
   - API クライアント（`lib/api/transactions.ts`）の作成
   - 取引一覧の表示（テーブル形式）
@@ -750,7 +749,7 @@ gh secret list
   - ローディングインジケーター
   - _Requirements: 2.2, 13.1, 13.5_
 
-- [ ] 16.2 取引作成フォームの実装
+- [ ] 17.2 取引作成フォームの実装
   - `app/transactions/new/page.tsx` の作成
   - フォーム入力（日付、金額、カテゴリ、タイプ、メモ）
   - リアルタイムバリデーション
@@ -758,38 +757,38 @@ gh secret list
   - 成功時のリダイレクト
   - _Requirements: 2.1, 2.5, 13.8_
 
-- [ ] 16.3 取引編集フォームの実装
+- [ ] 17.3 取引編集フォームの実装
   - `app/transactions/[id]/edit/page.tsx` の作成
   - 既存データの取得と表示
   - 更新処理（API PUT リクエスト）
   - _Requirements: 2.3, 13.8_
 
-- [ ] 16.4 取引削除機能の実装
+- [ ] 17.4 取引削除機能の実装
   - 削除確認ダイアログ
   - 削除処理（API DELETE リクエスト）
   - 一覧ページへのリダイレクト
   - _Requirements: 2.4, 13.6_
 
-- [ ] 16.5 カテゴリ管理 UI の実装
+- [ ] 17.5 カテゴリ管理 UI の実装
   - `app/categories/page.tsx` の作成
   - カテゴリ一覧表示
   - カテゴリ作成/編集フォーム
   - カテゴリ削除（使用チェック付き）
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 17. 取引機能のテスト
-- [ ] 17.1* Backend Unit テスト
+- [ ] 18. 取引機能のテスト
+- [ ] 18.1* Backend Unit テスト
   - TransactionService のテスト（バリデーション、CRUD ロジック）
   - CategoryService のテスト
   - Firestore Adapter のテスト（エミュレーター使用）
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 3.1, 3.2_
 
-- [ ] 17.2* Frontend Unit テスト
+- [ ] 18.2* Frontend Unit テスト
   - API クライアントのテスト（モック）
   - フォームコンポーネントのテスト
   - _Requirements: 2.1, 13.8_
 
-- [ ] 17.3 取引 CRUD の E2E テスト
+- [ ] 18.3 取引 CRUD の E2E テスト
   - 取引作成フロー（Playwright）
   - 取引一覧表示
   - 取引編集フロー
@@ -799,39 +798,39 @@ gh secret list
 
 ## Phase 4: レシートOCR機能実装
 
-- [ ] 18. Cloud Storage セットアップ
-- [ ] 18.1 Cloud Storage バケット作成
+- [ ] 19. Cloud Storage セットアップ
+- [ ] 19.1 Cloud Storage バケット作成
   - Terraform で Storage バケット作成
   - バケット名設定（`{project-id}-receipts`）
   - ライフサイクルポリシー設定（古い画像の自動削除）
   - サーバー側暗号化の有効化
   - _Requirements: 12.2, 19.2, 21.6_
 
-- [ ] 18.2 (P) IAM 権限設定
+- [ ] 19.2 (P) IAM 権限設定
   - バックエンドサービスアカウントへの Storage 書き込み権限付与
   - オブジェクトレベルのアクセス制御（ユーザー単位の隔離）
   - _Requirements: 11.2, 12.2_
 
-- [ ] 19. Receipt ドメイン実装（Backend）
-- [ ] 19.1 (P) Receipt エンティティ定義
+- [ ] 20. Receipt ドメイン実装（Backend）
+- [ ] 20.1 (P) Receipt エンティティ定義
   - `internal/domain/receipt.go` の作成
   - Receipt 構造体（ID、UserID、ImageURL、Status、OCRResult、UploadedAt、ProcessedAt）
   - Status 列挙型（Pending、Processing、Completed、Failed）
   - _Requirements: 4.2, 5.3_
 
-- [ ] 19.2 (P) ReceiptRepository Port と Adapter の実装
+- [ ] 20.2 (P) ReceiptRepository Port と Adapter の実装
   - `internal/port/receipt_repository.go` の作成
   - Firestore Adapter（`receipts/{receiptId}`）
   - CRUD メソッド、ステータス更新メソッド
   - _Requirements: 4.2, 5.3, 9.1_
 
-- [ ] 20. Cloud Storage Adapter 実装（Backend）
-- [ ] 20.1 (P) ImageStorage Port の定義
+- [ ] 21. Cloud Storage Adapter 実装（Backend）
+- [ ] 21.1 (P) ImageStorage Port の定義
   - `internal/port/image_storage.go` の作成
   - インターフェース（Upload、GetURL、Delete）
   - _Requirements: 4.1, 12.2_
 
-- [ ] 20.2 CloudStorageAdapter の実装
+- [ ] 21.2 CloudStorageAdapter の実装
   - `internal/adapter/storage/cloud_storage.go` の作成
   - Upload メソッド（ファイルアップロード、署名付きURL生成）
   - GetURL メソッド（画像URL取得）
@@ -839,57 +838,57 @@ gh secret list
   - エミュレーター対応
   - _Requirements: 4.1, 4.2, 12.2_
 
-- [ ] 21. Receipt アップロード API 実装（Backend）
-- [ ] 21.1 ReceiptService の実装
+- [ ] 22. Receipt アップロード API 実装（Backend）
+- [ ] 22.1 ReceiptService の実装
   - `internal/application/receipt_service.go` の作成
   - Upload メソッド（画像検証、Storage アップロード、Receipt 作成、Pub/Sub イベント発行）
   - GetReceipt メソッド
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 21.2 ファイルアップロードバリデーション
+- [ ] 22.2 ファイルアップロードバリデーション
   - ファイル形式チェック（JPEG、PNG、HEIC）
   - ファイルサイズチェック（最大 10MB）
   - エラーレスポンス（400 Bad Request）
   - _Requirements: 4.4, 4.5, 4.6_
 
-- [ ] 21.3 Receipt アップロードエンドポイント実装
+- [ ] 22.3 Receipt アップロードエンドポイント実装
   - `POST /api/v1/receipts/upload`（multipart/form-data）
   - ファイルのパース
   - ReceiptService 呼び出し
   - レスポンス返却（Receipt オブジェクト、status: pending）
   - _Requirements: 4.1, 4.2, 10.3_
 
-- [ ] 21.4 Receipt 取得エンドポイント実装
+- [ ] 22.4 Receipt 取得エンドポイント実装
   - `GET /api/v1/receipts/:id`
   - `GET /api/v1/receipts`（ユーザー単位の一覧）
   - _Requirements: 4.7, 4.8_
 
-- [ ] 22. Pub/Sub と Cloud Tasks セットアップ
-- [ ] 22.1 Pub/Sub トピックとサブスクリプション作成
+- [ ] 23. Pub/Sub と Cloud Tasks セットアップ
+- [ ] 23.1 Pub/Sub トピックとサブスクリプション作成
   - Terraform で Pub/Sub トピック作成（`receipt-uploaded`）
   - サブスクリプション作成（Cloud Tasks エンドポイントへのプッシュ）
   - _Requirements: 12.5, 18.1, 18.2_
 
-- [ ] 22.2 Cloud Tasks キュー作成
+- [ ] 23.2 Cloud Tasks キュー作成
   - Terraform で Cloud Tasks キュー作成
   - レート制限設定（Vision API クォータ対策）
   - リトライポリシー設定（最大3回）
   - デッドレターキュー設定
   - _Requirements: 12.6, 18.4, 18.5_
 
-- [ ] 22.3 (P) PubSubAdapter の実装
+- [ ] 23.3 (P) PubSubAdapter の実装
   - `internal/adapter/pubsub/publisher.go` の作成
   - Publish メソッド（イベント発行）
   - エミュレーター対応
   - _Requirements: 12.5, 18.1, 18.2_
 
-- [ ] 23. Cloud Vision Adapter 実装（Backend）
-- [ ] 23.1 (P) OCRService Port の定義
+- [ ] 24. Cloud Vision Adapter 実装（Backend）
+- [ ] 24.1 (P) OCRService Port の定義
   - `internal/port/ocr_service.go` の作成
   - インターフェース（ExtractText）
   - _Requirements: 5.2, 12.4_
 
-- [ ] 23.2 CloudVisionAdapter の実装
+- [ ] 24.2 CloudVisionAdapter の実装
   - `internal/adapter/vision/cloud_vision.go` の作成
   - DOCUMENT_TEXT_DETECTION の使用
   - テキスト抽出、金額・日付・店舗名のパース
@@ -897,20 +896,20 @@ gh secret list
   - エラーハンドリング
   - _Requirements: 5.2, 5.8, 5.9, 12.4_
 
-- [ ] 23.3 OCR 結果パース処理
+- [ ] 24.3 OCR 結果パース処理
   - 金額抽出ロジック（通貨記号、数値パターンマッチング）
   - 日付抽出ロジック（日付フォーマットパターンマッチング）
   - 店舗名抽出ロジック（トップテキストブロック）
   - 複数金額検出時の合計金額選択
   - _Requirements: 5.3, 5.9_
 
-- [ ] 24. OCR Worker 実装（Backend）
-- [ ] 24.1 OCR Worker エンドポイント実装
+- [ ] 25. OCR Worker 実装（Backend）
+- [ ] 25.1 OCR Worker エンドポイント実装
   - `POST /api/v1/workers/ocr`（Cloud Tasks からの呼び出し）
   - リクエスト認証（Cloud Tasks 専用トークン検証）
   - _Requirements: 5.1, 18.3_
 
-- [ ] 24.2 OCR 処理ロジック実装
+- [ ] 25.2 OCR 処理ロジック実装
   - Cloud Storage から画像取得
   - Cloud Vision API 呼び出し
   - OCR 結果パース
@@ -918,58 +917,58 @@ gh secret list
   - 処理時間計測（30秒以内目標）
   - _Requirements: 5.2, 5.3, 5.10_
 
-- [ ] 24.3 OCR Worker の冪等性実装
+- [ ] 25.3 OCR Worker の冪等性実装
   - receiptId による重複処理チェック
   - ステータス確認（Processing 中は処理スキップ）
   - _Requirements: 18.4_
 
-- [ ] 24.4 OCR エラーハンドリング
+- [ ] 25.4 OCR エラーハンドリング
   - OCR 失敗時のログ記録
   - Receipt ステータス更新（Failed）
   - リトライロジック（Cloud Tasks 任せ）
   - デッドレターキュー移動（3回失敗後）
   - _Requirements: 5.5, 18.4, 18.5_
 
-- [ ] 25. Frontend レシート機能 UI 実装
-- [ ] 25.1 レシート画像アップロードフォーム作成
+- [ ] 26. Frontend レシート機能 UI 実装
+- [ ] 26.1 レシート画像アップロードフォーム作成
   - ファイル選択 UI
   - ドラッグ&ドロップ対応
   - プレビュー表示
   - アップロードボタン
   - _Requirements: 4.1, 13.1_
 
-- [ ] 25.2 OCR 処理状態の表示
+- [ ] 26.2 OCR 処理状態の表示
   - アップロード中インジケーター
   - OCR 処理中インジケーター
   - 処理完了通知
   - エラーメッセージ表示
   - _Requirements: 4.2, 5.4, 5.5, 5.6_
 
-- [ ] 25.3 OCR 結果の取引フォーム自動入力
+- [ ] 26.3 OCR 結果の取引フォーム自動入力
   - OCR 結果取得（ポーリング or WebSocket）
   - 取引フォームへの自動入力（金額、日付、店舗名）
   - ユーザーによる確認・修正 UI
   - _Requirements: 5.4, 5.7_
 
-- [ ] 25.4 レシート画像表示機能
+- [ ] 26.4 レシート画像表示機能
   - サムネイル表示（取引詳細ページ）
   - フルサイズ画像表示（モーダル）
   - _Requirements: 4.7, 4.8_
 
-- [ ] 26. レシート OCR 機能のテスト
-- [ ] 26.1* Backend Unit テスト
+- [ ] 27. レシート OCR 機能のテスト
+- [ ] 27.1* Backend Unit テスト
   - ReceiptService のテスト
   - CloudStorageAdapter のテスト（モック）
   - CloudVisionAdapter のテスト（モック）
   - OCR Worker のテスト（モック）
   - _Requirements: 4.1, 5.2_
 
-- [ ] 26.2 OCR 処理の統合テスト
+- [ ] 27.2 OCR 処理の統合テスト
   - Pub/Sub → Cloud Tasks → OCR Worker のフロー
   - エミュレーター環境でのエンドツーエンドテスト
   - _Requirements: 5.1, 5.2, 5.3, 18.1, 18.2_
 
-- [ ] 26.3 レシートアップロード E2E テスト
+- [ ] 27.3 レシートアップロード E2E テスト
   - ファイルアップロード（Playwright）
   - OCR 処理完了待機
   - 取引フォーム自動入力確認
@@ -977,26 +976,26 @@ gh secret list
 
 ## Phase 5: ナレッジ機能（メモ・タグ）実装
 
-- [ ] 27. Memo ドメイン実装（Backend）
-- [ ] 27.1 (P) Memo エンティティ定義
+- [ ] 28. Memo ドメイン実装（Backend）
+- [ ] 28.1 (P) Memo エンティティ定義
   - `internal/domain/memo.go` の作成
   - Memo 構造体（ID、UserID、TransactionID、Content、Tags、CreatedAt、UpdatedAt）
   - 文字数制限バリデーション（最大 5000 文字）
   - _Requirements: 6.1, 6.6_
 
-- [ ] 27.2 (P) MemoRepository Port と Adapter の実装
+- [ ] 28.2 (P) MemoRepository Port と Adapter の実装
   - `internal/port/memo_repository.go` の作成
   - Firestore Adapter（`users/{userId}/memos/{memoId}`）
   - CRUD メソッド、タグ検索メソッド
   - _Requirements: 6.1, 6.7, 9.1_
 
-- [ ] 27.3 KnowledgeService の実装
+- [ ] 28.3 KnowledgeService の実装
   - `internal/application/knowledge_service.go` の作成
   - CreateMemo、UpdateMemo、DeleteMemo メソッド
   - 編集履歴タイムスタンプ記録
   - _Requirements: 6.1, 6.5_
 
-- [ ] 27.4 Memo API 実装
+- [ ] 28.4 Memo API 実装
   - `POST /api/v1/transactions/:id/memos`
   - `GET /api/v1/transactions/:id/memos`
   - `PUT /api/v1/memos/:id`
@@ -1004,42 +1003,42 @@ gh secret list
   - JWT ミドルウェア適用
   - _Requirements: 6.1, 10.2_
 
-- [ ] 28. Frontend ナレッジ UI 実装
-- [ ] 28.1 メモ追加フォームの作成
+- [ ] 29. Frontend ナレッジ UI 実装
+- [ ] 29.1 メモ追加フォームの作成
   - 取引詳細ページ内のメモフォーム
   - Markdown エディタ統合
   - プレビュー機能
   - _Requirements: 6.1, 6.4_
 
-- [ ] 28.2 メモ表示機能の実装
+- [ ] 29.2 メモ表示機能の実装
   - メモアイコン表示（取引一覧）
   - メモポップアップ表示
   - Markdown レンダリング
   - _Requirements: 6.2, 6.3, 6.4_
 
-- [ ] 28.3 タグ入力機能の実装
+- [ ] 29.3 タグ入力機能の実装
   - タグ入力コンポーネント
   - 自動補完（既存タグ候補）
   - タグ削除機能
   - _Requirements: 6.7_
 
-- [ ] 28.4 XSS 対策の実装
+- [ ] 29.4 XSS 対策の実装
   - DOMPurify によるサニタイズ処理
   - Markdown レンダリング時のエスケープ
   - _Requirements: 11.8_
 
-- [ ] 29. ナレッジ機能のテスト
-- [ ] 29.1* Backend Unit テスト
+- [ ] 30. ナレッジ機能のテスト
+- [ ] 30.1* Backend Unit テスト
   - KnowledgeService のテスト
   - MemoRepository のテスト
   - _Requirements: 6.1, 6.5_
 
-- [ ] 29.2* Frontend Unit テスト
+- [ ] 30.2* Frontend Unit テスト
   - メモコンポーネントのテスト
   - XSS 対策のテスト
   - _Requirements: 6.1, 6.4_
 
-- [ ] 29.3 メモ機能の E2E テスト
+- [ ] 30.3 メモ機能の E2E テスト
   - メモ追加フロー（Playwright）
   - Markdown プレビュー確認
   - タグ付けフロー
@@ -1047,8 +1046,8 @@ gh secret list
 
 ## Phase 6: 検索・レポート機能実装
 
-- [ ] 30. 検索機能実装（Backend）
-- [ ] 30.1 SearchService の実装
+- [ ] 31. 検索機能実装（Backend）
+- [ ] 31.1 SearchService の実装
   - `internal/application/search_service.go` の作成
   - 全文検索ロジック（Firestore クエリ + アプリケーション層フィルタリング）
   - 日付範囲フィルタ
@@ -1056,40 +1055,40 @@ gh secret list
   - タグフィルタ
   - _Requirements: 7.1, 7.3, 7.4, 7.6_
 
-- [ ] 30.2 検索 API 実装
+- [ ] 31.2 検索 API 実装
   - `GET /api/v1/transactions/search`（クエリパラメータ: q、from、to、category、tags）
   - ハイライト情報の返却
   - _Requirements: 7.1, 7.2_
 
-- [ ] 31. レポート機能実装（Backend）
-- [ ] 31.1 ReportService の実装
+- [ ] 32. レポート機能実装（Backend）
+- [ ] 32.1 ReportService の実装
   - `internal/application/report_service.go` の作成
   - 集計ロジック（期間別、カテゴリ別）
   - 月次・週次・年次集計
   - 前月比較データ生成
   - _Requirements: 8.1, 8.2, 8.3, 8.6_
 
-- [ ] 31.2 レポート API 実装
+- [ ] 32.2 レポート API 実装
   - `GET /api/v1/reports/summary`（クエリパラメータ: from、to、groupBy）
   - CSV エクスポート機能
   - _Requirements: 8.1, 8.7_
 
-- [ ] 32. Frontend 検索・レポート UI 実装
-- [ ] 32.1 検索フォームの作成
+- [ ] 33. Frontend 検索・レポート UI 実装
+- [ ] 33.1 検索フォームの作成
   - 検索キーワード入力
   - 日付範囲選択
   - カテゴリフィルタ
   - タグフィルタ
   - _Requirements: 7.1, 7.3, 7.4_
 
-- [ ] 32.2 検索結果表示の実装
+- [ ] 33.2 検索結果表示の実装
   - 検索結果一覧
   - マッチ箇所のハイライト表示
   - 現在のフィルタ条件表示
   - 結果 0 件時のメッセージ
   - _Requirements: 7.2, 7.5, 7.7_
 
-- [ ] 32.3 ダッシュボードの作成
+- [ ] 33.3 ダッシュボードの作成
   - `app/dashboard/page.tsx` の更新
   - 当月の収入・支出・残高表示
   - カテゴリ別支出グラフ（円グラフ）
@@ -1097,117 +1096,112 @@ gh secret list
   - グラフクリックでドリルダウン
   - _Requirements: 8.1, 8.2, 8.4, 8.5_
 
-- [ ] 32.4 レポートエクスポート機能の実装
+- [ ] 33.4 レポートエクスポート機能の実装
   - CSV ダウンロードボタン
   - エクスポート処理
   - _Requirements: 8.7_
 
-- [ ] 33. 検索・レポート機能のテスト
-- [ ] 33.1* Backend Unit テスト
+- [ ] 34. 検索・レポート機能のテスト
+- [ ] 34.1* Backend Unit テスト
   - SearchService のテスト
   - ReportService のテスト
   - _Requirements: 7.1, 8.1_
 
-- [ ] 33.2* Frontend Unit テスト
+- [ ] 34.2* Frontend Unit テスト
   - 検索フォームのテスト
   - グラフコンポーネントのテスト
   - _Requirements: 7.1, 8.4_
 
-- [ ] 33.3 検索機能の E2E テスト
+- [ ] 34.3 検索機能の E2E テスト
   - 検索フロー（Playwright）
   - フィルタ適用
   - ハイライト表示確認
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 15.10_
 
-- [ ] 33.4 レポート機能の E2E テスト
+- [ ] 34.4 レポート機能の E2E テスト
   - ダッシュボード表示
   - グラフドリルダウン
   - CSV エクスポート
   - _Requirements: 8.1, 8.4, 8.5, 8.7, 15.10_
 
-## Phase 7: 運用・監視機能実装
-
-- [ ] 34. ログ・監視機能実装（Backend）
-- [ ] 34.1 構造化ログの実装
+## Phase 7: 運用・監視機能実装\n\n- [ ] 35. ログ・監視機能実装（Backend）
+- [ ] 35.1 構造化ログの実装
   - JSON 形式のログ出力
   - ログレベル設定（INFO、WARN、ERROR）
   - 機密情報マスキング
   - _Requirements: 11.8, 15.1, 15.2, 19.5_
 
-- [ ] 34.2 Cloud Monitoring 統合
+- [ ] 35.2 Cloud Monitoring 統合
   - メトリクス収集（API レスポンスタイム、エラーレート、リクエスト数）
   - カスタムメトリクス定義
   - _Requirements: 12.8, 15.3_
 
-- [ ] 34.3 Cloud Trace 統合
+- [ ] 35.3 Cloud Trace 統合
   - 分散トレーシングの実装
   - トレースコンテキスト伝播
   - _Requirements: 12.10, 15.8_
 
-- [ ] 34.4 アラート設定
+- [ ] 35.4 アラート設定
   - API レスポンスタイム > 3 秒でアラート
   - エラーレート > 1% でアラート
   - コスト > 予算でアラート
   - _Requirements: 15.4, 21.4_
 
-- [ ] 35. セキュリティ強化
-- [ ] 35.1 HTTPS 強制の実装
+- [ ] 36. セキュリティ強化\n- [ ] 36.1 HTTPS 強制の実装
   - Cloud Run での HTTPS 設定
   - HTTP → HTTPS リダイレクト
   - _Requirements: 11.3, 11.4_
 
-- [ ] 35.2 データ暗号化の確認
+- [ ] 36.2 データ暗号化の確認
   - TLS 1.3 設定確認
   - Cloud Storage サーバー側暗号化確認
   - Firestore 暗号化確認
   - _Requirements: 19.1, 19.2, 19.3_
 
-- [ ] 35.3 (P) Cloud KMS セットアップ
+- [ ] 36.3 (P) Cloud KMS セットアップ
   - Terraform で KMS キーリング作成
   - 暗号鍵作成
   - 鍵ローテーションポリシー設定
   - _Requirements: 19.4, 19.6_
 
-- [ ] 35.4 レート制限の実装
+- [ ] 36.4 レート制限の実装
   - アップロードエンドポイントのレート制限（10回/時間）
   - API レート制限（将来対応の準備）
   - _Requirements: 14.4_
 
-- [ ] 35.5 アカウントロック機能の実装
+- [ ] 36.5 アカウントロック機能の実装
   - ログイン失敗回数カウント
   - 5回連続失敗でアカウントロック
   - _Requirements: 11.7_
 
-- [ ] 36. パフォーマンス最適化
-- [ ] 36.1 API パフォーマンステスト
+- [ ] 37. パフォーマンス最適化\n- [ ] 37.1 API パフォーマンステスト
   - JMeter または Locust によるロードテスト
   - 95 パーセンタイル < 1 秒の確認
   - _Requirements: 20.1_
 
-- [ ] 36.2 OCR 処理パフォーマンステスト
+- [ ] 37.2 OCR 処理パフォーマンステスト
   - OCR 処理時間計測
   - 平均 < 15 秒、最大 < 30 秒の確認
   - _Requirements: 5.10, 20.2_
 
-- [ ] 36.3 Frontend パフォーマンステスト
+- [ ] 37.3 Frontend パフォーマンステスト
   - Lighthouse スコア計測
   - LCP < 2.5 秒の確認
   - _Requirements: 20.3_
 
-- [ ] 37. Production 環境セットアップ
-- [ ] 37.1 Production 環境の Terraform 定義
+- [ ] 38. Production 環境セットアップ\n- [ ] 38.1 Production 環境の Terraform 定義
   - `terraform/environments/prod/main.tf` の作成
   - Production 固有変数（`prod.tfvars`）
   - 本番用リソース設定（スケーリング、冗長性）
   - _Requirements: 12.12, 17.2_
 
-- [ ] 37.2 Production デプロイパイプライン構築
+- [ ] 38.2 Production デプロイパイプライン構築
   - GitHub Actions ワークフロー（`.github/workflows/deploy-production.yml`）
   - 手動承認ゲート
   - ブルー/グリーンデプロイ（または Canary）
   - _Requirements: 15.10_
 
-- [ ] 37.3 Production 環境へのデプロイ
+- [ ] 38.3 Production 環境へのデプロイ
   - Staging で最終確認
   - Production デプロイ実行
   - 動作確認

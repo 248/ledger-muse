@@ -536,7 +536,7 @@ gh secret list
   - **確認手順**: `docs/staging-integration.md` に疎通手順と curl コマンドを記載（App Hosting 環境変数設定→フロント表示で「バックエンド: OK」確認→ `/health` を HTTPS で <1s チェック）
   - _Requirements: 11.3, 11.4, 20.1_
 
-- [ ] 8.3* E2E テストの初期実装
+- [x] 8.3* E2E テストの初期実装
   - Playwright のセットアップ
   - Hello World ページの表示テスト
   - Backend API 呼び出しテスト

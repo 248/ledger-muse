@@ -1,0 +1,10 @@
+FROM andreysenov/firebase-tools:13.13.1
+
+WORKDIR /workspace
+
+# Copy Firebase configuration files
+COPY firebase.json .
+COPY firestore.rules .
+COPY storage.rules .
+
+CMD ["firebase", "emulators:start", "--only", "auth,firestore,storage,pubsub,ui", "--project", "demo-no-project"]

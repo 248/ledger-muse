@@ -23,9 +23,9 @@ testdata
 # CI/CD
 .github
 
-# Build artifacts
+# Build artifacts (but keep source files)
+tmp/
 *.exe
 *.dll
 *.so
 *.dylib
-main

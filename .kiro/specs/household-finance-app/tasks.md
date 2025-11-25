@@ -403,7 +403,7 @@ gh secret list
 
 **実施目的**: GCPに接続せずにローカルでフルスタック開発を可能にする。
 
-- [ ] 5.1 Firebase Emulator Suite のセットアップ
+- [x] 5.1 Firebase Emulator Suite のセットアップ
   - **前提条件**: タスク1.2完了
   - Firebase CLI のインストール
   - `firebase init emulators` による初期化
@@ -413,7 +413,7 @@ gh secret list
   - **検証方法**: `firebase emulators:start` で起動、http://localhost:4000 でUI確認
   - _Requirements: 9.1, 12.2_
 
-- [ ] 5.2 Docker Compose 環境構築（Colima + Docker）
+- [x] 5.2 Docker Compose 環境構築（Colima + Docker）
   - **前提条件**: なし
   - Colima、Docker、Docker Compose のインストール（Homebrew）
   - Colima の初期設定（CPU 4、メモリ 8GB、ディスク 60GB）
@@ -424,7 +424,7 @@ gh secret list
   - **検証方法**: `colima start`, `docker compose up` で起動確認
   - _Requirements: 12.1, 12.12_
 
-- [ ] 5.3 環境変数設定
+- [x] 5.3 環境変数設定
   - **前提条件**: タスク1.2, 1.3完了
   - Frontend `.env.local` の作成（API URL、エミュレーターホスト、NextAuth設定）
   - Backend `.env` の作成（エミュレーターホスト、GCP プロジェクトID）
@@ -433,7 +433,7 @@ gh secret list
   - **検証方法**: `.env` ファイル読み込み確認、環境変数が正しく設定されている
   - _Requirements: 11.8_
 
-- [ ] 5.4 ローカル環境の起動確認
+- [x] 5.4 ローカル環境の起動確認
   - **前提条件**: タスク5.1, 5.2, 5.3完了
   - `colima start` でDocker環境起動
   - `docker compose up -d` でBackend + Emulator起動

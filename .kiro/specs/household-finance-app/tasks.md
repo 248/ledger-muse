@@ -574,7 +574,7 @@ gh secret list
   - OAuth 2.0 クライアントは今後 IDP プロバイダ設定時に client_id/client_secret を tfvars で受け取る想定（現時点ではドメイン登録まで）
   - _Requirements: 1.1, 11.1, 17.1_
 
-- [ ] 9.2 (P) Firebase Admin SDK のセットアップ（Backend）
+- [x] 9.2 (P) Firebase Admin SDK のセットアップ（Backend）
   - Firebase Admin SDK のインストール
   - サービスアカウント認証の設定
   - ローカル環境でのエミュレーター接続確認

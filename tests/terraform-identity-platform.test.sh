@@ -37,8 +37,11 @@ assert_contains "$staging_dir/main.tf" '\.\.\/\.\.\/modules\/identity-platform'
 assert_contains "$staging_dir/main.tf" 'authorized_domains[[:space:]]*=[[:space:]]*var\.identity_platform_authorized_domains'
 
 assert_contains "$staging_dir/variables.tf" 'variable[[:space:]]+"identity_platform_authorized_domains"'
-assert_contains "$staging_dir/variables.tf" 'preview--ledger-muse\.asia-east1\.hosted\.app'
-assert_contains "$staging_dir/variables.tf" 'production--ledger-muse\.asia-east1\.hosted\.app'
+
+# Check actual domain values in .tfvars file (not in variables.tf which only has variable definition)
+assert_file "$staging_dir/identity-platform.auto.tfvars"
+assert_contains "$staging_dir/identity-platform.auto.tfvars" 'preview--ledger-muse\.asia-east1\.hosted\.app'
+assert_contains "$staging_dir/identity-platform.auto.tfvars" 'production--ledger-muse\.asia-east1\.hosted\.app'
 
 assert_contains "$staging_dir/outputs.tf" 'identity_platform_authorized_domains'
 assert_contains "$staging_dir/outputs.tf" 'module\.identity_platform\.authorized_domains'

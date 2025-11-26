@@ -2,13 +2,11 @@ package firebase
 
 import (
 	"context"
-	"os"
 	"testing"
 )
 
 func TestNewAppRequiresProjectID(t *testing.T) {
-	t.Cleanup(func() { os.Unsetenv("FIREBASE_AUTH_EMULATOR_HOST") })
-	os.Setenv("FIREBASE_AUTH_EMULATOR_HOST", "localhost:9099")
+	t.Setenv("FIREBASE_AUTH_EMULATOR_HOST", "localhost:9099")
 
 	_, err := NewApp(context.Background(), "")
 	if err == nil {
@@ -17,8 +15,7 @@ func TestNewAppRequiresProjectID(t *testing.T) {
 }
 
 func TestNewAppWithEmulatorHost(t *testing.T) {
-	t.Cleanup(func() { os.Unsetenv("FIREBASE_AUTH_EMULATOR_HOST") })
-	os.Setenv("FIREBASE_AUTH_EMULATOR_HOST", "localhost:9099")
+	t.Setenv("FIREBASE_AUTH_EMULATOR_HOST", "localhost:9099")
 
 	app, err := NewApp(context.Background(), "demo-no-project")
 	if err != nil {

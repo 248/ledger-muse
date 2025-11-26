@@ -17,3 +17,8 @@ output "backend_api_cloud_run_service_url" {
   description = "URL of the staging backend API Cloud Run service"
   value       = module.backend_api_cloud_run.service_url
 }
+
+output "identity_platform_authorized_domains" {
+  description = "Authorized domains configured for Identity Platform (staging)"
+  value       = module.identity_platform.authorized_domains
+}

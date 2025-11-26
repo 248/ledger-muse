@@ -28,6 +28,13 @@ resource "google_project_service" "pubsub" {
   disable_on_destroy = false
 }
 
+module "identity_platform" {
+  source = "../../modules/identity-platform"
+
+  project_id         = var.project_id
+  authorized_domains = var.identity_platform_authorized_domains
+}
+
 # Artifact Registry
 module "artifact_registry" {
   source = "../../modules/artifact-registry"

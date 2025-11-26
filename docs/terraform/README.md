@@ -58,16 +58,36 @@
     6. CLI: `gcloud run services describe ledger-muse-api-staging --region=asia-northeast1 --project=ledger-muse --format='value(status.url)'` → 得られた URL を `curl` して placeholder 応答を確認
     7. コンソール: Google Cloud Console → Cloud Run → プロジェクト `ledger-muse` / リージョン `asia-northeast1` を選択し、`ledger-muse-api-staging` サービスの `Details` タブで URL と Service Account (`backend-api-staging-sa`) が紐付いていることを確認
     8. 将来 GitHub Actions からイメージを差し替えるまでは、`backend_api_cloud_run_container_image` 変数 (現状 `gcr.io/cloudrun/hello`) を placeholder として保持する
+  - **Identity Platform 設定 (タスク9.1)**
+    1. **前提条件**: `terraform/environments/staging/provider.tf` で `user_project_override = true` と `billing_project = var.project_id` が設定されていることを確認（ADC 使用時のクォータプロジェクト設定のため必須）
+    2. `terraform -chdir=terraform/environments/staging init -backend-config="bucket=${PROJECT_ID}-terraform-state"` （本プロジェクトでは `ledger-muse-terraform-state` を使用）
+    3. `cp terraform/environments/staging/identity-platform.auto.tfvars.example terraform/environments/staging/identity-platform.auto.tfvars` を作成し、`<preview-backend-name>--<project>.asia-east1.hosted.app` / `<production-backend-name>--<project>.asia-east1.hosted.app` など App Hosting の URL に合わせて authorized_domains を記入
+    4. `terraform -chdir=terraform/environments/staging plan -var-file=../../common.auto.tfvars -var-file=identity-platform.auto.tfvars`
+    5. **既存リソースの場合**: Identity Platform がすでに有効化されている場合は import が必要:
+       ```bash
+       terraform -chdir=terraform/environments/staging import \
+         -var-file=../../common.auto.tfvars \
+         -var-file=identity-platform.auto.tfvars \
+         'module.identity_platform.google_identity_platform_config.this' \
+         "${PROJECT_ID}"
+       ```
+       その後、再度 plan を実行して authorized_domains の更新内容を確認
+    6. `terraform -chdir=terraform/environments/staging apply -var-file=../../common.auto.tfvars -var-file=identity-platform.auto.tfvars`
+    7. CLI: `terraform -chdir=terraform/environments/staging output identity_platform_authorized_domains` でドメイン登録を確認。
+    8. コンソール: Google Cloud Console → Identity Platform → 設定 → 「承認済みドメイン」に反映されていることを確認。
+    9. OAuth クライアント (Google/その他 IdP) は後続フェーズで client_id/secret を tfvars から渡して追加する想定。
+    10. **トラブルシューティング**: エラー `403: requires a quota project` が発生した場合は、`gcloud auth application-default set-quota-project ${PROJECT_ID}` を実行後、`gcloud auth application-default login` で再認証
   - モジュールを追加したらこのガイドに用途と順序を追記する
 
 ## モジュールカタログ
 
 | モジュール | ディレクトリ | 主な役割 | 主な入出力 |
 |------------|--------------|----------|------------|
-| Artifact Registry | `terraform/modules/artifact-registry` | Docker レジストリを `format = \"DOCKER\"` で作成し、URL/リソース名を出力 | `repository_id`, `region` / `repository_url` |
+| Artifact Registry | `terraform/modules/artifact-registry` | Docker レジストリを `format = "DOCKER"` で作成し、URL/リソース名を出力 | `repository_id`, `region` / `repository_url` |
 | Backend IAM | `terraform/modules/iam` | Backend API 実行用のサービスアカウントを作成し、指定したロールを一括付与 | `service_account_id`, `service_account_roles` / `service_account_email` |
 | Cloud Run | `terraform/modules/cloud-run` | 指定イメージを Cloud Run にデプロイし、min/max スケール注釈とメモリ/CPU を設定 | `service_name`, `container_image`, `service_account_email` / `service_url` |
 | Storage | `terraform/modules/storage` | Cloud Storage バケットを作成し、ライフサイクル削除と任意の KMS 暗号化を設定 | `bucket_name`, `lifecycle_age_days`, `kms_key_name` / `bucket_url` |
+| Identity Platform | `terraform/modules/identity-platform` | Identity Platform を有効化し、サインインと authorized_domains を設定 | `project_id`, `authorized_domains` / `authorized_domains` |
 
 > これらのモジュールは `tests/terraform-modules.test.sh` で構造を検証しており、新規変更時はテストも更新してください。
 

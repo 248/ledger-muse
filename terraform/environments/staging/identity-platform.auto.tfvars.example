@@ -1,0 +1,6 @@
+# Authorized domains for Identity Platform (staging)
+# Replace with your App Hosting domains
+identity_platform_authorized_domains = [
+  "<preview-backend-name>--<project>.asia-east1.hosted.app",
+  "<production-backend-name>--<project>.asia-east1.hosted.app",
+]

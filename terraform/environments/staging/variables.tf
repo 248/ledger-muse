@@ -85,3 +85,9 @@ variable "backend_api_cloud_run_cpu" {
   type        = string
   default     = "1"
 }
+
+variable "identity_platform_authorized_domains" {
+  description = "Authorized domains for Identity Platform sign-in"
+  type        = list(string)
+  default     = []
+}

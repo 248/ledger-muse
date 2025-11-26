@@ -542,17 +542,39 @@ gh secret list
   - Backend API 呼び出しテスト
   - _Requirements: 15.10_
 
+- [ ] 8.4 App Hosting 環境変数のTerraform管理
+  - **前提条件**: タスク2.3完了（Terraformモジュール基盤）
+  - Secret Manager モジュール作成（`terraform/modules/secret-manager/`）
+  - Staging環境でSecret作成（`BACKEND_API_BASE_STAGING`）
+  - App Hosting サービスアカウントへのIAM権限付与（`roles/secretmanager.secretAccessor`）
+  - `apphosting.yaml` / `apphosting.staging.yaml` でSecret参照設定
+  - **成果物**: 
+    - `terraform/modules/secret-manager/` モジュール
+    - Secret Manager に登録されたバックエンドURL
+    - `apphosting.yaml` / `apphosting.staging.yaml`
+  - **検証方法**:
+    ```bash
+    # Secret の確認
+    gcloud secrets list --filter="name:BACKEND_API_BASE_STAGING"
+    gcloud secrets versions access latest --secret="BACKEND_API_BASE_STAGING"
+    
+    # IAM権限の確認
+    gcloud secrets get-iam-policy BACKEND_API_BASE_STAGING
+    ```
+  - **ドキュメント更新**: `docs/staging-integration.md` をSecret Manager使用方式に更新
+  - _Requirements: 11.8, 17.5, 19.5_
+
 ## Phase 2: 認証機能実装
 
 - [ ] 9. Google Cloud Identity Platform セットアップ
-- [ ] 9.1 Identity Platform の有効化
+- [x] 9.1 Identity Platform の有効化
   - Terraform で Identity Platform リソース作成
   - Google プロバイダーの有効化
-  - OAuth 2.0 クライアントの作成（Web アプリケーション）
-  - リダイレクトURI の設定
+  - authorized_domains を `preview--ledger-muse.asia-east1.hosted.app`, `production--ledger-muse.asia-east1.hosted.app` で設定（staging 環境変数にて定義）
+  - OAuth 2.0 クライアントは今後 IDP プロバイダ設定時に client_id/client_secret を tfvars で受け取る想定（現時点ではドメイン登録まで）
   - _Requirements: 1.1, 11.1, 17.1_
 
-- [ ] 9.2 (P) Firebase Admin SDK のセットアップ（Backend）
+- [x] 9.2 (P) Firebase Admin SDK のセットアップ（Backend）
   - Firebase Admin SDK のインストール
   - サービスアカウント認証の設定
   - ローカル環境でのエミュレーター接続確認

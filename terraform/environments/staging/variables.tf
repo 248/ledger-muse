@@ -95,6 +95,9 @@ variable "identity_platform_authorized_domains" {
 variable "backend_api_url" {
   description = "Backend API URL for App Hosting environment variables"
   type        = string
+  # WARNING: This default is staging-specific and should be overridden in production.
+  # For production environments, remove this default and use .auto.tfvars to avoid
+  # accidental exposure of environment-specific URLs in version control.
   default     = "https://ledger-muse-api-staging-xgx3m6aumq-an.a.run.app"
 }
 

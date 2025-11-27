@@ -12,11 +12,12 @@ Secret Manager への登録と IAM 権限の設定は Terraform で管理しま�
 
 ```hcl
 # Backend API URL (Cloud Run URL)
-backend_api_url = "https://ledger-muse-api-staging-xxxx.a.run.app"
+backend_api_url = "https://ledger-muse-api-staging-<hash>.a.run.app"
 
 # App Hosting サービスアカウントに Secret へのアクセス権を付与
+# 注: サービスアカウント名は gcloud iam service-accounts list で確認できます
 backend_api_url_secret_accessors = [
-  "serviceAccount:firebase-app-hosting-compute@ledger-muse.iam.gserviceaccount.com"
+  "serviceAccount:firebase-app-hosting-compute@<PROJECT_ID>.iam.gserviceaccount.com"
 ]
 ```
 
@@ -59,7 +60,7 @@ env:
 
 ```bash
 curl -w "status=%{http_code} time_total=%{time_total}\n" \
-  -s -o /dev/null https://ledger-muse-api-staging-912371481714.asia-northeast1.run.app/health
+  -s -o /dev/null <BACKEND_URL>/health
 ```
 
 **期待される結果**:

@@ -22,8 +22,10 @@ Staging 環境の `main.tf` には既に `google_project_service.secretmanager` 
 App Hosting のサービスアカウントメールアドレスを取得します：
 
 ```bash
-# Firebase Console または gcloud コマンドで確認
-# 通常: service-<project-number>@gcp-sa-firebase-apphosting.iam.gserviceaccount.com
+# gcloud コマンドで確認
+gcloud iam service-accounts list --filter="displayName:Firebase App Hosting"
+
+# 通常: firebase-app-hosting-compute@<PROJECT_ID>.iam.gserviceaccount.com
 ```
 
 ### 3. 環境変数ファイルの設定
@@ -32,15 +34,15 @@ App Hosting のサービスアカウントメールアドレスを取得しま�
 
 ```hcl
 # Backend API URL (Cloud Run URL)
-backend_api_url = "https://ledger-muse-api-staging-xgx3m6aumq-an.a.run.app"
+backend_api_url = "https://ledger-muse-api-staging-<hash>-<region>.a.run.app"
 
 # App Hosting サービスアカウントに Secret へのアクセス権を付与
 backend_api_url_secret_accessors = [
-  "serviceAccount:service-<PROJECT_NUMBER>@gcp-sa-firebase-apphosting.iam.gserviceaccount.com"
+  "serviceAccount:firebase-app-hosting-compute@<PROJECT_ID>.iam.gserviceaccount.com"
 ]
 ```
 
-**注意**: `<PROJECT_NUMBER>` を実際のプロジェクト番号に置き換えてください。
+**注意**: `<PROJECT_ID>` を実際のプロジェクトIDに置き換えてください。
 
 ### 4. Terraform 実行
 
@@ -77,7 +79,7 @@ gcloud secrets get-iam-policy BACKEND_API_BASE_STAGING
 
 期待される出力：
 - Secret ID: `BACKEND_API_BASE_STAGING`
-- Secret Data: `https://ledger-muse-api-staging-xgx3m6aumq-an.a.run.app`
+- Secret Data: `https://ledger-muse-api-staging-<hash>-<region>.a.run.app`
 - IAM Member: App Hosting サービスアカウント（`roles/secretmanager.secretAccessor`）
 
 ## App Hosting 設定
@@ -89,18 +91,18 @@ runConfig:
   cpu: 1
   memoryMiB: 512
   minInstances: 0
-  maxInstances: 2
+  maxInstances: 1
   concurrency: 80
 
 env:
-  - variable: NEXT_PUBLIC_API_BASE_URL
+  - variable: NEXT_PUBLIC_BACKEND_API_BASE
     secret: BACKEND_API_BASE_STAGING
     availability:
       - BUILD
       - RUNTIME
 ```
 
-この設定により、App Hosting は Secret Manager から `BACKEND_API_BASE_STAGING` を読み取り、環境変数 `NEXT_PUBLIC_API_BASE_URL` として Next.js アプリに注入します。
+この設定により、App Hosting は Secret Manager から `BACKEND_API_BASE_STAGING` を読み取り、環境変数 `NEXT_PUBLIC_BACKEND_API_BASE` として Next.js アプリに注入します。
 
 ## トラブルシューティング
 
@@ -117,7 +119,7 @@ gcloud secrets get-iam-policy BACKEND_API_BASE_STAGING
 Secret が正しく作成されているか確認：
 
 ```bash
-gcloud secrets list --project=ledger-muse
+gcloud secrets list --project=<PROJECT_ID>
 ```
 
 ### Secret 値の更新

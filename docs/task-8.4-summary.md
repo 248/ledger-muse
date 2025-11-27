@@ -48,7 +48,7 @@ Test-Driven Development (TDD) に基づく strict モードで実装
 **Staging 設定のポイント**:
 ```yaml
 env:
-  - variable: NEXT_PUBLIC_API_BASE_URL
+  - variable: NEXT_PUBLIC_BACKEND_API_BASE
     secret: BACKEND_API_BASE_STAGING
     availability:
       - BUILD

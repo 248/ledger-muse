@@ -37,12 +37,16 @@ gcloud iam service-accounts list --filter="displayName:Firebase App Hosting"
 backend_api_url = "https://ledger-muse-api-staging-<hash>-<region>.a.run.app"
 
 # App Hosting サービスアカウントに Secret へのアクセス権を付与
+# サービスアカウント確認: gcloud iam service-accounts list --filter="displayName:Firebase App Hosting"
+# 実際の形式: firebase-app-hosting-compute@<PROJECT_ID>.iam.gserviceaccount.com
 backend_api_url_secret_accessors = [
   "serviceAccount:firebase-app-hosting-compute@<PROJECT_ID>.iam.gserviceaccount.com"
 ]
 ```
 
-**注意**: `<PROJECT_ID>` を実際のプロジェクトIDに置き換えてください。
+**注意**:
+- `<PROJECT_ID>` を実際のプロジェクトIDに置き換えてください
+- このサービスアカウントはApp Hostingが自動作成します
 
 ### 4. Terraform 実行
 

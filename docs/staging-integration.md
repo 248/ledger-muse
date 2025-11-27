@@ -15,7 +15,8 @@ Secret Manager への登録と IAM 権限の設定は Terraform で管理しま�
 backend_api_url = "https://ledger-muse-api-staging-<hash>.a.run.app"
 
 # App Hosting サービスアカウントに Secret へのアクセス権を付与
-# 注: サービスアカウント名は gcloud iam service-accounts list で確認できます
+# サービスアカウント確認: gcloud iam service-accounts list --filter="displayName:Firebase App Hosting"
+# 実際の形式: firebase-app-hosting-compute@<PROJECT_ID>.iam.gserviceaccount.com
 backend_api_url_secret_accessors = [
   "serviceAccount:firebase-app-hosting-compute@<PROJECT_ID>.iam.gserviceaccount.com"
 ]

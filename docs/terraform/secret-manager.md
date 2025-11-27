@@ -37,10 +37,12 @@ gcloud iam service-accounts list --filter="displayName:Firebase App Hosting"
 backend_api_url = "https://ledger-muse-api-staging-<hash>-<region>.a.run.app"
 
 # App Hosting サービスアカウントに Secret へのアクセス権を付与
-# サービスアカウント確認: gcloud iam service-accounts list --filter="displayName:Firebase App Hosting"
-# 実際の形式: firebase-app-hosting-compute@<PROJECT_ID>.iam.gserviceaccount.com
+# App Hosting requires both service accounts:
+# - firebase-app-hosting-compute: Used at RUNTIME to access secrets
+# - firebase-apphosting-deployer: Used at BUILD TIME to access secrets
 backend_api_url_secret_accessors = [
-  "serviceAccount:firebase-app-hosting-compute@<PROJECT_ID>.iam.gserviceaccount.com"
+  "serviceAccount:firebase-app-hosting-compute@<PROJECT_ID>.iam.gserviceaccount.com",
+  "serviceAccount:firebase-apphosting-deployer@<PROJECT_ID>.iam.gserviceaccount.com"
 ]
 ```
 

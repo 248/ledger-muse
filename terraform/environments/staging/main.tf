@@ -1,3 +1,8 @@
+# Get project number for dynamic service account construction
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
 # API有効化
 resource "google_project_service" "artifactregistry" {
   project = var.project_id
@@ -84,10 +89,20 @@ module "backend_api_cloud_run" {
 module "backend_api_url_secret" {
   source = "../../modules/secret-manager"
 
-  project_id       = var.project_id
-  secret_id        = var.backend_api_url_secret_id
-  secret_data      = var.backend_api_url
-  accessor_members = var.backend_api_url_secret_accessors
+  project_id = var.project_id
+  secret_id  = var.backend_api_url_secret_id
+  secret_data = var.backend_api_url
+
+  # Combine user-specified SAs with dynamically constructed ones
+  accessor_members = concat(
+    var.backend_api_url_secret_accessors,
+    [
+      # Cloud Build SA (used by App Hosting internally)
+      "serviceAccount:${data.google_project.project.number}@cloudbuild.gserviceaccount.com",
+      # Firebase App Hosting Service Agent (Google-managed)
+      "serviceAccount:service-${data.google_project.project.number}@gcp-sa-firebaseapphosting.iam.gserviceaccount.com"
+    ]
+  )
 
   labels = {
     environment = "staging"
@@ -95,4 +110,20 @@ module "backend_api_url_secret" {
   }
 
   depends_on = [google_project_service.secretmanager]
+}
+
+# Firebase App Hosting Service Agent - Project-level Secret Manager Viewer
+# Required for App Hosting to check secret metadata (versions.get permission)
+resource "google_project_iam_member" "apphosting_secret_viewer" {
+  project = var.project_id
+  role    = "roles/secretmanager.viewer"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-firebaseapphosting.iam.gserviceaccount.com"
+}
+
+# Cloud Build Service Agent - Project-level Secret Manager Viewer
+# Required for Cloud Build (used by App Hosting) to check secret metadata
+resource "google_project_iam_member" "cloudbuild_secret_viewer" {
+  project = var.project_id
+  role    = "roles/secretmanager.viewer"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
 }

@@ -589,35 +589,35 @@ gh secret list
   - ローカル環境でのエミュレーター接続確認
   - _Requirements: 1.1, 11.1_
 
-- [ ] 10. Frontend 認証機能実装
-- [ ] 10.1 NextAuth.js v5 のセットアップ
+- [x] 10. Frontend 認証機能実装
+- [x] 10.1 NextAuth.js v5 のセットアップ
   - NextAuth.js v5 のインストール
   - `app/api/auth/[...nextauth]/route.ts` の作成
   - Google Provider の設定（クライアントID、シークレット）
   - Session Provider の設定
   - _Requirements: 1.1, 1.2_
 
-- [ ] 10.2 ログインページの作成
+- [x] 10.2 ログインページの作成
   - `app/login/page.tsx` の実装
   - Google ログインボタンの配置
   - ログイン状態の確認
   - リダイレクト処理（ログイン成功時にダッシュボードへ）
   - _Requirements: 1.3, 13.1_
 
-- [ ] 10.3 ログアウト機能の実装
+- [x] 10.3 ログアウト機能の実装
   - ログアウトボタンの配置
   - NextAuth.js の `signOut` 関数呼び出し
   - ログイン画面へのリダイレクト
   - _Requirements: 1.5_
 
-- [ ] 10.4 保護されたルートの作成
+- [x] 10.4 保護されたルートの作成
   - `app/dashboard/page.tsx` の作成（認証必須ページ）
   - ミドルウェアによる認証チェック（`middleware.ts`）
   - 未認証ユーザーのログインページへのリダイレクト
   - セッション情報の表示（ユーザー名、メールアドレス）
   - _Requirements: 1.3, 1.7, 11.2_
 
-- [ ] 10.5 セッション管理の実装
+- [x] 10.5 セッション管理の実装
   - セッションの自動更新設定
   - トークンリフレッシュロジック
   - セッション有効期限の設定

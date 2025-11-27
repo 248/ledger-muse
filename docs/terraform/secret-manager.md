@@ -35,22 +35,13 @@ Staging 環境の `main.tf` には既に `google_project_service.secretmanager` 
 # Get from: gcloud run services describe ledger-muse-api-staging --region asia-northeast1 --format='value(status.url)'
 backend_api_url = "https://ledger-muse-api-staging-912371481714.asia-northeast1.run.app"
 
-# Service accounts that can access the backend API URL secret
-# App Hosting requires:
-# - firebase-app-hosting-compute: Runtime access
-# - firebase-apphosting-deployer: Deployment access
-# - firebase-adminsdk-fbsvc: Admin SDK access
-# Note: Additional App Hosting-specific permissions will be granted via Firebase CLI
-backend_api_url_secret_accessors = [
-  "serviceAccount:firebase-app-hosting-compute@ledger-muse.iam.gserviceaccount.com",
-  "serviceAccount:firebase-apphosting-deployer@ledger-muse.iam.gserviceaccount.com",
-  "serviceAccount:firebase-adminsdk-fbsvc@ledger-muse.iam.gserviceaccount.com"
-]
+# Note: Service account permissions are managed by Firebase CLI
+# Run: firebase apphosting:secrets:grantaccess BACKEND_API_BASE_STAGING --backend staging --location asia-east1
 ```
 
 **注意**:
 - `backend_api_url` を実際の Cloud Run URL に置き換えてください
-- サービスアカウントはApp Hostingが自動作成します
+- IAM権限設定はTerraformでは行いません（Firebase CLIで管理）
 
 ### 3. Terraform 実行
 
@@ -88,7 +79,7 @@ gcloud secrets get-iam-policy BACKEND_API_BASE_STAGING
 期待される出力：
 - Secret ID: `BACKEND_API_BASE_STAGING`
 - Secret Data: `https://ledger-muse-api-staging-912371481714.asia-northeast1.run.app`
-- IAM Members: ユーザー指定のサービスアカウント（`roles/secretmanager.secretAccessor`）
+- IAM Bindings: この時点ではなし（次のステップでFirebase CLIが設定）
 
 ### 5. Firebase CLI で App Hosting 用の権限を付与
 
@@ -153,11 +144,10 @@ gcloud projects get-iam-policy ledger-muse \
   --format="table(bindings.role,bindings.members)"
 ```
 
-期待される権限構成：
-- **Terraform管理分（シークレットレベル）**: ユーザー指定のサービスアカウントに `secretAccessor`
-- **Firebase CLI管理分（シークレットレベル）**:
-  - Firebase App Hosting Service Agent に `secretVersionManager`
-  - `firebase-app-hosting-compute` に `viewer`
+期待される権限構成（全てFirebase CLI管理）：
+- Firebase App Hosting Service Agent (`service-PROJECT_NUMBER@gcp-sa-firebaseapphosting`) に `secretVersionManager`
+- `firebase-app-hosting-compute` に `viewer`
+- Cloud Build SA に `secretAccessor`（自動追加される場合あり）
 
 ## トラブルシューティング
 
@@ -207,8 +197,8 @@ Terraform は自動的に新しい Secret バージョンを作成します。Fi
 ## セキュリティのベストプラクティス
 
 1. **責任分離**:
-   - Terraform: インフラ管理者が管理（シークレット作成、ユーザー指定のSA権限）
-   - Firebase CLI: アプリ開発者が実行（App Hosting固有の権限）
+   - Terraform: インフラ管理者が管理（シークレット作成）
+   - Firebase CLI: デプロイ担当者が実行（全ての IAM 権限設定）
 
 2. **最小権限の原則**: 各サービスアカウントに必要最小限の権限のみを付与
 

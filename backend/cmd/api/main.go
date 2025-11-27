@@ -25,6 +25,7 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
+		// Default for Cloud Run / local dev; Cloud Run injects PORT at runtime.
 		port = "8080"
 	}
 

@@ -88,6 +88,7 @@
 | Cloud Run | `terraform/modules/cloud-run` | 指定イメージを Cloud Run にデプロイし、min/max スケール注釈とメモリ/CPU を設定 | `service_name`, `container_image`, `service_account_email` / `service_url` |
 | Storage | `terraform/modules/storage` | Cloud Storage バケットを作成し、ライフサイクル削除と任意の KMS 暗号化を設定 | `bucket_name`, `lifecycle_age_days`, `kms_key_name` / `bucket_url` |
 | Identity Platform | `terraform/modules/identity-platform` | Identity Platform を有効化し、サインインと authorized_domains を設定 | `project_id`, `authorized_domains` / `authorized_domains` |
+| Secret Manager | `terraform/modules/secret-manager` | Secret Manager でシークレットを作成し、バージョン管理と IAM アクセス制御を設定 | `project_id`, `secret_id`, `secret_data`, `accessor_members` / `secret_name`, `secret_id` |
 
 > これらのモジュールは `tests/terraform-modules.test.sh` で構造を検証しており、新規変更時はテストも更新してください。
 

@@ -28,6 +28,13 @@ resource "google_project_service" "pubsub" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "secretmanager" {
+  project = var.project_id
+  service = "secretmanager.googleapis.com"
+
+  disable_on_destroy = false
+}
+
 module "identity_platform" {
   source = "../../modules/identity-platform"
 
@@ -71,4 +78,21 @@ module "backend_api_cloud_run" {
   cpu                  = var.backend_api_cloud_run_cpu
 
   depends_on = [google_project_service.cloudrun]
+}
+
+# Secret Manager - Backend API URL for App Hosting
+module "backend_api_url_secret" {
+  source = "../../modules/secret-manager"
+
+  project_id       = var.project_id
+  secret_id        = var.backend_api_url_secret_id
+  secret_data      = var.backend_api_url
+  accessor_members = var.backend_api_url_secret_accessors
+
+  labels = {
+    environment = "staging"
+    purpose     = "app-hosting-config"
+  }
+
+  depends_on = [google_project_service.secretmanager]
 }

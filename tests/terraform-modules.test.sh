@@ -88,6 +88,21 @@ assert_contains "$storage_dir/variables.tf" 'variable[[:space:]]+"lifecycle_age_
 assert_contains "$storage_dir/variables.tf" 'variable[[:space:]]+"kms_key_name"'
 assert_contains "$storage_dir/outputs.tf" 'output[[:space:]]+"bucket_url"'
 
+# Secret Manager module expectations
+secret_manager_dir="$modules_root/secret-manager"
+assert_dir "$secret_manager_dir"
+assert_file "$secret_manager_dir/main.tf"
+assert_file "$secret_manager_dir/variables.tf"
+assert_file "$secret_manager_dir/outputs.tf"
+assert_contains "$secret_manager_dir/main.tf" 'resource[[:space:]]+"google_secret_manager_secret"'
+assert_contains "$secret_manager_dir/main.tf" 'resource[[:space:]]+"google_secret_manager_secret_version"'
+assert_contains "$secret_manager_dir/main.tf" 'resource[[:space:]]+"google_secret_manager_secret_iam_member"'
+assert_contains "$secret_manager_dir/main.tf" 'roles/secretmanager.secretAccessor'
+assert_contains "$secret_manager_dir/variables.tf" 'variable[[:space:]]+"secret_id"'
+assert_contains "$secret_manager_dir/variables.tf" 'variable[[:space:]]+"secret_data"'
+assert_contains "$secret_manager_dir/variables.tf" 'variable[[:space:]]+"accessor_members"'
+assert_contains "$secret_manager_dir/outputs.tf" 'output[[:space:]]+"secret_name"'
+
 if [[ $fail -eq 0 ]]; then
   echo "✅ terraform modules tests passed"
 else

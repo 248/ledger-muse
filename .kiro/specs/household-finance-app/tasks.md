@@ -542,13 +542,13 @@ gh secret list
   - Backend API 呼び出しテスト
   - _Requirements: 15.10_
 
-- [ ] 8.4 App Hosting 環境変数のTerraform管理
+- [x] 8.4 App Hosting 環境変数のTerraform管理
   - **前提条件**: タスク2.3完了（Terraformモジュール基盤）
   - Secret Manager モジュール作成（`terraform/modules/secret-manager/`）
   - Staging環境でSecret作成（`BACKEND_API_BASE_STAGING`）
   - App Hosting サービスアカウントへのIAM権限付与（`roles/secretmanager.secretAccessor`）
   - `apphosting.yaml` / `apphosting.staging.yaml` でSecret参照設定
-  - **成果物**: 
+  - **成果物**:
     - `terraform/modules/secret-manager/` モジュール
     - Secret Manager に登録されたバックエンドURL
     - `apphosting.yaml` / `apphosting.staging.yaml`
@@ -557,11 +557,20 @@ gh secret list
     # Secret の確認
     gcloud secrets list --filter="name:BACKEND_API_BASE_STAGING"
     gcloud secrets versions access latest --secret="BACKEND_API_BASE_STAGING"
-    
+
     # IAM権限の確認
     gcloud secrets get-iam-policy BACKEND_API_BASE_STAGING
     ```
   - **ドキュメント更新**: `docs/staging-integration.md` をSecret Manager使用方式に更新
+  - **メモ (2025-11-26)**:
+    - `terraform/modules/secret-manager/` に Secret Manager モジュールを作成（main.tf, variables.tf, outputs.tf, README.md）
+    - `terraform/environments/staging/main.tf` に Secret Manager API 有効化と `backend_api_url_secret` モジュールを追加
+    - `terraform/environments/staging/variables.tf` に backend_api_url, backend_api_url_secret_id, backend_api_url_secret_accessors 変数を追加
+    - `frontend/apphosting.yaml` と `frontend/apphosting.staging.yaml` を作成し、staging 環境では Secret Manager 参照を設定
+    - `tests/terraform-secret-manager.test.sh` でモジュール構造とアプリケーション設定を検証
+    - `tests/terraform-modules.test.sh` に Secret Manager モジュールの検証を追加
+    - `docs/terraform/secret-manager.md` にデプロイガイドを作成
+    - `docs/terraform/README.md` のモジュールカタログに Secret Manager を追加
   - _Requirements: 11.8, 17.5, 19.5_
 
 ## Phase 2: 認証機能実装

@@ -1,0 +1,23 @@
+# Firebase App Hosting configuration for production
+# https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  # CPU and memory configuration
+  cpu: 1
+  memoryMiB: 512
+  # Minimum instances to keep warm (0 for cost optimization)
+  minInstances: 0
+  # Maximum instances for scaling
+  maxInstances: 3
+  # Concurrency - number of concurrent requests per instance
+  concurrency: 80
+
+env:
+  # Production backend API base URL
+  # TODO: Update this with production Cloud Run URL when available
+  # TODO: Use Secret Manager for production (Phase 7, Task 38)
+  - variable: NEXT_PUBLIC_BACKEND_API_BASE
+    value: "https://api.ledgermuse.com"
+    availability:
+      - BUILD
+      - RUNTIME

@@ -91,3 +91,22 @@ variable "identity_platform_authorized_domains" {
   type        = list(string)
   default     = []
 }
+
+variable "backend_api_url" {
+  description = "Backend API URL for App Hosting environment variables"
+  type        = string
+  # This value must be provided via a .tfvars file (e.g., secret-manager.auto.tfvars)
+  # to avoid accidental exposure of environment-specific URLs in version control.
+}
+
+variable "backend_api_url_secret_id" {
+  description = "Secret ID for storing backend API URL"
+  type        = string
+  default     = "BACKEND_API_BASE_STAGING"
+}
+
+variable "backend_api_url_secret_accessors" {
+  description = "Service accounts that can access the backend API URL secret"
+  type        = list(string)
+  default     = []
+}

@@ -51,3 +51,9 @@ variable "cpu" {
   type        = string
   default     = "1"
 }
+
+variable "env_vars" {
+  description = "Environment variables for the container"
+  type        = map(string)
+  default     = {}
+}

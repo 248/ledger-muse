@@ -23,9 +23,15 @@ resource "google_cloud_run_service" "api" {
       containers {
         image = var.container_image
 
-        env {
-          name  = "ENV"
-          value = var.environment
+        dynamic "env" {
+          for_each = merge(
+            { ENV = var.environment },
+            var.env_vars
+          )
+          content {
+            name  = env.key
+            value = env.value
+          }
         }
 
         resources {

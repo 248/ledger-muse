@@ -77,6 +77,11 @@ module "backend_api_cloud_run" {
   memory               = var.backend_api_cloud_run_memory
   cpu                  = var.backend_api_cloud_run_cpu
 
+  env_vars = {
+    FIREBASE_PROJECT_ID = var.project_id
+    PORT                = "8080"
+  }
+
   depends_on = [google_project_service.cloudrun]
 }
 

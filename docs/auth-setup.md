@@ -40,7 +40,7 @@ NextAuth から取得した ID トークンを Echo 側で検証します。エ�
 ```
 PORT=8080
 GO_ENV=local
-FIREBASE_PROJECT_ID=demo-no-project        # プロジェクトID
+FIREBASE_PROJECT_ID=demo-no-project        # プロジェクトID（必須）
 FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 # エミュレーターを使う場合
 ```
 ※ 実トークンを検証する場合は `FIREBASE_AUTH_EMULATOR_HOST` を空にし、適切なサービスアカウント認証を別途設定してください。
@@ -57,6 +57,18 @@ NextAuth 側でサインイン後、ブラウザのネットワークタブや c
 curl -H "Authorization: Bearer <id_token>" http://localhost:8080/api/v1/me
 ```
 期待値: `{"userId":"...","email":"..."}` が返却され、無効トークンやヘッダー欠落時は 401 となる。
+
+### 実トークンを検証する場合（Identity Platform / Firebase Auth 本番）
+1. `FIREBASE_PROJECT_ID` に本番/テストの GCP プロジェクトIDを設定（エミュレーター環境変数は外す）。
+2. サービスアカウントを用意してキーを取得し、`GOOGLE_APPLICATION_CREDENTIALS` で指定:
+   ```bash
+   export GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
+   export FIREBASE_PROJECT_ID=<your-project-id>
+   go run ./cmd/api
+   ```
+   - 権限は最小で「Firebase Admin SDK（Identity Platform）」相当が必要（例: `roles/identitytoolkit.admin` または Firebase Admin 権限を含むカスタムロール）。
+   - gcloud の ADC を使う場合は `gcloud auth application-default login` でも可（ただし個人資格に依存するのでサービスアカウント推奨）。
+3. フロントで Google サインインして得た ID トークンを `/api/v1/me` に付与して確認。
 
 ## 4. よくあるハマりどころ
 - リダイレクト URI 未設定: Google で `redirect_uri_mismatch` が出る。上記 URI を追加して再試行。

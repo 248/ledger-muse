@@ -28,7 +28,7 @@ describe("authConfig", () => {
 
     const result = await authConfig.callbacks?.authorized?.({
       auth: null,
-      request: new Request("https://example.com/dashboard"),
+      request: new Request("https://example.com/dashboard") as any,
     });
 
     expect(result).toBe(false);

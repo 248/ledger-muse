@@ -97,6 +97,7 @@ describe("authConfig.callbacks.session", () => {
         user: { name: "Test User", email: "user@example.com" },
         expires: "",
       } as any,
+      user: { id: "user-1", email: "user@example.com" } as any,
       token: { sub: "user-1", accessToken: "abc123" } as never,
     });
 

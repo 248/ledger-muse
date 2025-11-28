@@ -77,6 +77,15 @@
     8. コンソール: Google Cloud Console → Identity Platform → 設定 → 「承認済みドメイン」に反映されていることを確認。
     9. OAuth クライアント (Google/その他 IdP) は後続フェーズで client_id/secret を tfvars から渡して追加する想定。
     10. **トラブルシューティング**: エラー `403: requires a quota project` が発生した場合は、`gcloud auth application-default set-quota-project ${PROJECT_ID}` を実行後、`gcloud auth application-default login` で再認証
+  - **Secret Manager 設定 (Firebase App Hosting環境変数用)**
+    1. **前提条件**: Cloud Run サービスがデプロイ済みで、Backend API の URL が取得可能であること
+    2. 詳細手順: `docs/terraform/secret-manager.md` を参照
+    3. 概要:
+       - `cp terraform/environments/staging/secret-manager.auto.tfvars.example terraform/environments/staging/secret-manager.auto.tfvars` を作成
+       - `backend_api_url` に Cloud Run の URL を設定
+       - `terraform -chdir=terraform/environments/staging apply -var-file=../../common.auto.tfvars -var-file=secret-manager.auto.tfvars` でシークレット作成
+       - Firebase CLI で IAM 権限を設定: `firebase apphosting:secrets:grantaccess BACKEND_API_BASE_STAGING --backend staging --location asia-east1 --project <PROJECT_ID>`
+    4. **重要**: IAM権限はTerraformではなくFirebase CLIで管理します
   - モジュールを追加したらこのガイドに用途と順序を追記する
 
 ## モジュールカタログ
@@ -88,7 +97,7 @@
 | Cloud Run | `terraform/modules/cloud-run` | 指定イメージを Cloud Run にデプロイし、min/max スケール注釈とメモリ/CPU を設定 | `service_name`, `container_image`, `service_account_email` / `service_url` |
 | Storage | `terraform/modules/storage` | Cloud Storage バケットを作成し、ライフサイクル削除と任意の KMS 暗号化を設定 | `bucket_name`, `lifecycle_age_days`, `kms_key_name` / `bucket_url` |
 | Identity Platform | `terraform/modules/identity-platform` | Identity Platform を有効化し、サインインと authorized_domains を設定 | `project_id`, `authorized_domains` / `authorized_domains` |
-| Secret Manager | `terraform/modules/secret-manager` | Secret Manager でシークレットを作成し、バージョン管理と IAM アクセス制御を設定 | `project_id`, `secret_id`, `secret_data`, `accessor_members` / `secret_name`, `secret_id` |
+| Secret Manager | `terraform/modules/secret-manager` | Secret Manager でシークレットを作成し、バージョン管理を設定。IAM権限はFirebase CLIで管理 | `project_id`, `secret_id`, `secret_data` / `secret_name`, `secret_id` |
 
 > これらのモジュールは `tests/terraform-modules.test.sh` で構造を検証しており、新規変更時はテストも更新してください。
 

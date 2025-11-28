@@ -105,8 +105,5 @@ variable "backend_api_url_secret_id" {
   default     = "BACKEND_API_BASE_STAGING"
 }
 
-variable "backend_api_url_secret_accessors" {
-  description = "Service accounts that can access the backend API URL secret"
-  type        = list(string)
-  default     = []
-}
+# Note: Service account permissions are managed by Firebase CLI
+# Run: firebase apphosting:secrets:grantaccess BACKEND_API_BASE_STAGING --backend staging --location asia-east1 --project <PROJECT_ID>

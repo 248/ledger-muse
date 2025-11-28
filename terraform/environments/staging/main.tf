@@ -81,13 +81,13 @@ module "backend_api_cloud_run" {
 }
 
 # Secret Manager - Backend API URL for App Hosting
+# Note: IAM permissions are managed by Firebase CLI (firebase apphosting:secrets:grantaccess)
 module "backend_api_url_secret" {
   source = "../../modules/secret-manager"
 
-  project_id       = var.project_id
-  secret_id        = var.backend_api_url_secret_id
-  secret_data      = var.backend_api_url
-  accessor_members = var.backend_api_url_secret_accessors
+  project_id  = var.project_id
+  secret_id   = var.backend_api_url_secret_id
+  secret_data = var.backend_api_url
 
   labels = {
     environment = "staging"

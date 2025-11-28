@@ -120,9 +120,9 @@ graph TB
 |-------|------------------|-----------------|-------|
 | **Frontend** | Next.js 15.x (TypeScript) | Web UI, SSR/SSG, API Routes | App Router 使用、レスポンシブデザイン対応 |
 | **Frontend Hosting** | Firebase App Hosting | Next.js SSR/SSG 最適化、CDN 統合 | 2025年4月GA、GitHub CI/CD統合、無料枠10k訪問/月 |
-| **Frontend Auth** | NextAuth.js (Auth.js) v5.x | Google OAuth 認証、セッション管理 | Identity Platform 統合、JWT セッション |
+| **Frontend Auth** | Firebase Authentication SDK | Identity Platform 統合、Google OAuth、IDトークン管理 | Firebase Auth SDK for Web、トークン自動リフレッシュ |
 | **Backend** | Go 1.23.x + Echo v4.x | REST API、ビジネスロジック | Cloud Run デプロイ、Hexagonal Architecture 実装 |
-| **Backend Auth** | Firebase Admin SDK (Go) v4.x | JWT トークン検証 | echo-middleware-firebasejwt 使用 |
+| **Backend Auth** | Firebase Admin SDK (Go) v4.x | Firebase IDトークン検証 | Identity Platform発行トークンの署名検証、カスタムクレーム対応 |
 | **Database (初期)** | Firestore (Native Mode) | ドキュメントストア | 無料枠活用、将来的に PostgreSQL 移行 |
 | **Database (将来)** | Cloud SQL PostgreSQL 16.x | リレーショナル DB | JSONB サポート、ACID トランザクション |
 | **Storage** | Cloud Storage Standard Class | レシート画像保存 | サーバー側暗号化、ライフサイクルポリシー |

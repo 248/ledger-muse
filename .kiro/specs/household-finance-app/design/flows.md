@@ -8,25 +8,28 @@
 sequenceDiagram
     participant User as ユーザー
     participant AppHosting as Firebase App Hosting
-    participant NextAuth as NextAuth.js
-    participant IdP as Identity Platform
+    participant FirebaseAuth as Firebase Auth SDK
+    participant IdP as Identity Platform / Firebase Auth
     participant API as Backend API (Cloud Run)
     participant Firestore as Firestore
 
     User->>AppHosting: ログインボタンクリック
-    AppHosting->>NextAuth: signIn("google")
-    NextAuth->>IdP: OAuth 2.0 認証リクエスト
+    AppHosting->>FirebaseAuth: signInWithPopup(auth, GoogleAuthProvider)
+    FirebaseAuth->>IdP: OAuth 2.0 認証リクエスト
     IdP->>User: Google ログイン画面表示
     User->>IdP: 認証情報入力
-    IdP->>NextAuth: 認証成功、ID トークン発行
-    NextAuth->>AppHosting: セッション作成（JWT）
+    IdP->>FirebaseAuth: 認証成功、Firebase ID トークン発行
+    FirebaseAuth->>AppHosting: User オブジェクト + ID トークン
+    AppHosting->>AppHosting: onAuthStateChanged リスナー発火
     AppHosting->>User: ダッシュボードにリダイレクト
 
     Note over User,Firestore: 以降の API リクエスト
 
     User->>AppHosting: 取引一覧取得リクエスト
-    AppHosting->>API: GET /api/v1/transactions<br/>Authorization: Bearer {idToken}
-    API->>API: JWT トークン検証<br/>(Firebase Admin SDK)
+    AppHosting->>FirebaseAuth: user.getIdToken() でトークン取得
+    FirebaseAuth-->>AppHosting: Firebase ID トークン
+    AppHosting->>API: GET /api/v1/transactions<br/>Authorization: Bearer {firebaseIdToken}
+    API->>API: Firebase IDトークン検証<br/>(Firebase Admin SDK VerifyIDToken)
     API->>Firestore: ユーザー ID でクエリ
     Firestore->>API: 取引データ返却
     API->>AppHosting: JSON レスポンス
@@ -34,10 +37,13 @@ sequenceDiagram
 ```
 
 **フロー決定事項**:
-- NextAuth.js が OAuth フロー、セッション管理を担当
-- ID トークンは Authorization ヘッダーで Backend API に送信
-- Backend は Firebase Admin SDK でトークン検証、ユーザー ID 抽出
-- セッションは JWT 形式で保存（デフォルト 30 日間有効）
+- **Firebase Authentication SDK** が OAuth フロー、認証状態管理を担当
+- **Identity Platform** が認証プロバイダー（Google OAuth）として機能
+- Firebase ID トークンは Authorization ヘッダーで Backend API に送信
+- Backend は **Firebase Admin SDK VerifyIDToken** でトークン検証、ユーザー ID 抽出
+- 認証状態は `onAuthStateChanged` リスナーで監視
+- トークン自動リフレッシュは Firebase SDK が処理（有効期限1時間）
+- **トークン発行者が統一**: Identity Platform/Firebase Auth のみ
 
 ## レシート画像アップロード & OCR 処理フロー
 

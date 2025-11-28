@@ -193,7 +193,7 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --service-account "${{ steps.deploy-meta.outputs.runtime_service_account }}" \
-            --set-env-vars "ENV=${{ steps.deploy-meta.outputs.deploy_env }}" \
+            --set-env-vars "ENV=${{ steps.deploy-meta.outputs.deploy_env }},FIREBASE_PROJECT_ID=${{ env.PROJECT_ID }}" \
             --memory "${{ env.CLOUD_RUN_MEMORY }}" \
             --cpu "${{ env.CLOUD_RUN_CPU }}" \
             --timeout "${{ env.CLOUD_RUN_TIMEOUT }}" \

@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +14,7 @@ import (
 
 	adapterhttp "github.com/ledger-muse/backend/internal/adapter/http"
 	apphealth "github.com/ledger-muse/backend/internal/application/health"
+	firebaseapp "github.com/ledger-muse/backend/internal/firebase"
 	"github.com/ledger-muse/backend/pkg/version"
 
 	"github.com/labstack/echo/v4"
@@ -20,8 +22,15 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
 	healthService := apphealth.NewService(version.Version)
-	e := newServer(healthService)
+
+	authVerifier, err := buildAuthVerifier(ctx)
+	if err != nil {
+		log.Fatalf("failed to initialize auth verifier: %v", err)
+	}
+
+	e := newServer(healthService, authVerifier)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -50,7 +59,7 @@ func gracefulShutdown(e *echo.Echo) {
 	}
 }
 
-func newServer(healthService *apphealth.Service) *echo.Echo {
+func newServer(healthService *apphealth.Service, authVerifier adapterhttp.TokenVerifier) *echo.Echo {
 	e := echo.New()
 	e.HideBanner = true
 
@@ -102,5 +111,22 @@ func newServer(healthService *apphealth.Service) *echo.Echo {
 	}
 
 	adapterhttp.RegisterHealthRoutes(e, healthService)
+	adapterhttp.RegisterAuthRoutes(e, authVerifier)
 	return e
+}
+
+func buildAuthVerifier(ctx context.Context) (adapterhttp.TokenVerifier, error) {
+	projectID := os.Getenv("FIREBASE_PROJECT_ID")
+	if projectID == "" {
+		return nil, fmt.Errorf("FIREBASE_PROJECT_ID environment variable must be set")
+	}
+	app, err := firebaseapp.NewApp(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	client, err := app.Auth(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return adapterhttp.NewFirebaseTokenVerifier(client), nil
 }

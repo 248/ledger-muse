@@ -589,73 +589,134 @@ gh secret list
   - ローカル環境でのエミュレーター接続確認
   - _Requirements: 1.1, 11.1_
 
-- [ ] 10. Frontend 認証機能実装
-- [ ] 10.1 NextAuth.js v5 のセットアップ
+- [x] 10. Frontend 認証機能実装
+- [x] 10.1 NextAuth.js v5 のセットアップ
   - NextAuth.js v5 のインストール
   - `app/api/auth/[...nextauth]/route.ts` の作成
   - Google Provider の設定（クライアントID、シークレット）
   - Session Provider の設定
   - _Requirements: 1.1, 1.2_
 
-- [ ] 10.2 ログインページの作成
+- [x] 10.2 ログインページの作成
   - `app/login/page.tsx` の実装
   - Google ログインボタンの配置
   - ログイン状態の確認
   - リダイレクト処理（ログイン成功時にダッシュボードへ）
   - _Requirements: 1.3, 13.1_
 
-- [ ] 10.3 ログアウト機能の実装
+- [x] 10.3 ログアウト機能の実装
   - ログアウトボタンの配置
   - NextAuth.js の `signOut` 関数呼び出し
   - ログイン画面へのリダイレクト
   - _Requirements: 1.5_
 
-- [ ] 10.4 保護されたルートの作成
+- [x] 10.4 保護されたルートの作成
   - `app/dashboard/page.tsx` の作成（認証必須ページ）
   - ミドルウェアによる認証チェック（`middleware.ts`）
   - 未認証ユーザーのログインページへのリダイレクト
   - セッション情報の表示（ユーザー名、メールアドレス）
   - _Requirements: 1.3, 1.7, 11.2_
 
-- [ ] 10.5 セッション管理の実装
+- [x] 10.5 セッション管理の実装
   - セッションの自動更新設定
   - トークンリフレッシュロジック
   - セッション有効期限の設定
   - _Requirements: 1.7_
 
-- [ ] 11. Backend JWT 検証ミドルウェア実装
-- [ ] 11.1 JWT ミドルウェアの実装
+- [ ] 10.6 NextAuth削除とFirebase Auth SDK導入
+  - NextAuth.jsパッケージ削除
+  - Firebase Auth SDK (`firebase/auth`) のインストール
+  - Firebase設定ファイル (`lib/firebase/config.ts`) の作成
+  - 環境変数設定 (`NEXT_PUBLIC_FIREBASE_*`)
+  - Firebase App初期化コードの実装
+  - **注意**: 別ブランチ `feature/firebase-auth-migration` で実装
+  - _Requirements: 1.1, 11.1_
+
+- [ ] 10.7 Firebase認証UIコンポーネントの実装
+  - Google認証ボタンコンポーネント (`components/auth/GoogleSignInButton.tsx`)
+  - `signInWithPopup(auth, GoogleAuthProvider)` 実装
+  - サインアウトボタンコンポーネント
+  - エラーハンドリング（認証失敗、ネットワークエラー）
+  - ローディング状態管理
+  - 既存の `app/login/page.tsx` を Firebase Auth 対応に書き換え
+  - _Requirements: 1.3, 13.1_
+
+- [ ] 10.8 Firebase認証状態管理の実装
+  - 認証状態管理フック (`hooks/useAuth.ts`)
+  - `onAuthStateChanged` リスナー実装
+  - IDトークン取得・キャッシュロジック (`user.getIdToken()`)
+  - トークン自動リフレッシュ（有効期限監視）
+  - Context Provider (`components/auth/AuthProvider.tsx`)
+  - セッション永続化（`setPersistence(auth, browserLocalPersistence)`)
+  - _Requirements: 1.7_
+
+- [ ] 10.9 Next.js MiddlewareのFirebase Auth対応
+  - `middleware.ts` を Firebase Auth に対応
+  - クライアント側認証状態チェック
+  - 保護ルート設定（`/dashboard` 等）
+  - 未認証時のリダイレクト処理
+  - Server Components での認証状態取得
+  - _Requirements: 1.3, 1.7, 11.2_
+
+- [ ] 10.10 Firebase Emulator統合とローカル開発環境
+  - Firebase Emulator Suite 設定（`firebase.json`）
+  - Authentication Emulator 接続設定
+  - `connectAuthEmulator(auth, "http://localhost:9099")` 実装
+  - 環境変数による切り替え（本番/Emulator）
+  - Emulator UIでのユーザー管理確認
+  - ローカル開発手順ドキュメント更新
+  - _Requirements: 15.10_
+
+- [x] 11. Backend JWT 検証ミドルウェア実装
+- [x] 11.1 JWT ミドルウェアの実装
   - Authorization ヘッダーからトークン抽出
   - Firebase Admin SDK による JWT 検証
   - トークン検証失敗時の 401 エラーレスポンス
   - ユーザーID の抽出と Context への設定
   - _Requirements: 1.3, 10.6, 11.1_
 
-- [ ] 11.2 保護されたエンドポイントの作成\n  - `GET /api/v1/me` エンドポイント実装
+- [x] 11.2 保護されたエンドポイントの作成\n  - `GET /api/v1/me` エンドポイント実装
   - JWT ミドルウェアの適用
   - ユーザー情報の返却（userId、email）
   - _Requirements: 1.3, 10.2, 11.2_
 
-- [ ] 11.3 認証エラーハンドリング
+- [x] 11.3 認証エラーハンドリング
   - 無効なトークンのエラーレスポンス（401）
   - トークン期限切れのエラーレスポンス（401）
   - エラーログの記録
   - _Requirements: 1.4, 10.5, 11.9_
 
-- [ ] 12. 認証機能のテスト
-- [ ] 12.1* Frontend 認証フローの Unit テスト
+- [ ] 11.4 Firebase IDトークン検証の強化
+  - Firebase Admin SDK 検証ロジックの確認
+  - カスタムクレーム検証の実装（将来の拡張用）
+  - トークン検証エラーの詳細ログ追加
+  - パフォーマンス最適化（公開鍵キャッシュ確認）
+  - **注意**: 現在の実装は既にFirebase Admin SDK使用、大きな変更は不要
+  - **注意**: 別ブランチ `feature/firebase-auth-migration` でドキュメント更新
+  - _Requirements: 1.3, 10.6, 11.1_
+
+- [ ] 11.5 認証ドキュメントの更新
+  - Backend認証フロードキュメント更新
+  - Firebase IDトークン形式の説明追加
+  - ローカル開発環境でのEmulator使用手順
+  - トラブルシューティングガイド作成
+  - API仕様書の認証セクション更新
+  - _Requirements: 15.10_
+
+- [x] 12. 認証機能のテスト
+- [x] 12.1* Frontend 認証フローの Unit テスト
   - ログインコンポーネントのテスト
   - セッション状態管理のテスト
   - API クライアント（認証付き）のテスト
   - _Requirements: 1.2, 1.3_
 
-- [ ] 12.2* Backend JWT ミドルウェアの Unit テスト
+- [x] 12.2* Backend JWT ミドルウェアの Unit テスト
   - 有効なトークンの検証テスト
   - 無効なトークンの検証テスト
   - トークン欠落時のテスト
   - _Requirements: 1.3, 10.6_
 
-- [ ] 12.3 認証フローの E2E テスト
+- [x] 12.3 認証フローの E2E テスト
   - ログインフローのテスト（Playwright）
   - ダッシュボードアクセステスト（認証必須）
   - ログアウトフローのテスト

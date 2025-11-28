@@ -33,8 +33,8 @@
 
 ### Quality Guardrails & CI
 **Location**: `/tests`（bash ガードレール）  
-**Purpose**: CI 定義や主要スクリプトの存在・設定を lint 的に確認する。`tests/ci.test.sh` は `.github/workflows/ci.yml` の jobs/path-filter/言語バージョン(Node20, Go1.23)・ firebase.json を検証し、`frontend.test.sh` / `backend.test.sh` は依存と主要コマンドをチェック。Terraform 系は `tests/terraform-*.test.sh`（bootstrap / remote-state / modules / environments）が GCS backend, モジュール構造, 変数定義を網羅的に監視する。  
-**Pattern**: 新規ワークフローや主要スクリプトを追加したら対応するガードレールをこのディレクトリに追加する。
+**Purpose**: CI 定義や主要スクリプトの存在・設定を lint 的に確認する。`tests/ci.test.sh` は `.github/workflows/ci.yml` の jobs/path-filter/言語バージョン(Node20, Go1.23 runner)・ firebase.json を検証し、`frontend.test.sh` / `backend.test.sh` は依存と主要コマンドをチェック（現状 frontend の type-check は `tsc --noEmit` だがテストは `next check` を要求）。Terraform 系は `tests/terraform-*.test.sh`（bootstrap / remote-state / modules / environments）が GCS backend, モジュール構造, 変数定義を網羅的に監視する。  
+**Pattern**: 新規ワークフローや主要スクリプトを追加したら対応するガードレールをこのディレクトリに追加する。Go は go.mod で 1.24 指定、CI runner の更新を検討。
 
 ### Docs & Specs
 **Location**: `/docs`, `/.kiro/specs/household-finance-app`  
@@ -65,4 +65,4 @@ import { useReceiptForm } from './hooks/useReceiptForm'; // 同一ドメイン�
 - インフラは環境分離と最小権限 IAM を前提に、モジュール再利用と remote state で一貫性を確保。
 - 新規ディレクトリやモジュールは既存パターン(feature-first UI、レイヤード API、モジュール化 IaC)に従えば steering 更新不要。
 
-updated_at: 2025-11-20
+updated_at: 2025-11-27

@@ -13,7 +13,7 @@
    - 対策: フロントエンドで DOMPurify による sanitize 処理
 
 3. **CSRF 攻撃（偽造リクエスト）**
-   - 対策: NextAuth.js の CSRF トークン、SameSite Cookie 設定
+   - 対策: Firebase Auth の状態トークン、SameSite Cookie 設定、CORS 設定
 
 4. **機密情報漏洩（ログにトークン出力）**
    - 対策: ログマスキング処理、Cloud Logging のアクセス制御

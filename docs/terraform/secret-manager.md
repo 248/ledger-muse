@@ -93,13 +93,18 @@ firebase apphosting:secrets:grantaccess BACKEND_API_BASE_STAGING \
 ```
 
 このコマンドは以下を自動的に設定します：
-- Firebase App Hosting Service Agent への `secretVersionManager` 権限（メタデータ読み取り用）
-- `firebase-app-hosting-compute` への `secretmanager.viewer` 権限（シークレットレベル）
-- その他の App Hosting 内部で必要な権限
+- `firebase-app-hosting-compute` へ `secretAccessor` - シークレット値の読み取り（`secretmanager.versions.access`）
+- `firebase-app-hosting-compute` へ `viewer` - メタデータの読み取り
+- Firebase App Hosting Service Agent (`service-PROJECT_NUMBER@gcp-sa-firebaseapphosting`) へ `secretVersionManager` - バージョン管理
 
 成功すると以下のメッセージが表示されます：
 ```
 ✔  Successfully set IAM bindings on secret BACKEND_API_BASE_STAGING.
+```
+
+権限設定を確認：
+```bash
+gcloud secrets get-iam-policy BACKEND_API_BASE_STAGING --project=ledger-muse
 ```
 
 ### 6. App Hosting 設定ファイルの確認
@@ -145,15 +150,34 @@ gcloud projects get-iam-policy ledger-muse \
 ```
 
 期待される権限構成（全てFirebase CLI管理）：
-- Firebase App Hosting Service Agent (`service-PROJECT_NUMBER@gcp-sa-firebaseapphosting`) に `secretVersionManager`
-- `firebase-app-hosting-compute` に `viewer`
-- Cloud Build SA に `secretAccessor`（自動追加される場合あり）
+```yaml
+bindings:
+- members:
+  - serviceAccount:firebase-app-hosting-compute@PROJECT_ID.iam.gserviceaccount.com
+  role: roles/secretmanager.secretAccessor
+- members:
+  - serviceAccount:service-PROJECT_NUMBER@gcp-sa-firebaseapphosting.iam.gserviceaccount.com
+  role: roles/secretmanager.secretVersionManager
+- members:
+  - serviceAccount:firebase-app-hosting-compute@PROJECT_ID.iam.gserviceaccount.com
+  role: roles/secretmanager.viewer
+```
+
+**重要**:
+- `secretAccessor` が最も重要な権限（`versions.access`を提供し、ビルド時のエラーを防ぐ）
+- 3つ全ての権限がFirebase CLIコマンド1回で設定されます
 
 ## トラブルシューティング
 
-### エラー: "Permission 'secretmanager.versions.get' denied"
+### エラー: "Permission 'secretmanager.versions.access' denied"
 
-**原因**: App Hosting 用の IAM バインディングが不足しています。
+**症状**: ビルド時に以下のエラーが発生：
+```
+Permission 'secretmanager.versions.access' denied for resource
+'projects/PROJECT_NUMBER/secrets/BACKEND_API_BASE_STAGING/versions/1'
+```
+
+**原因**: Firebase CLI コマンドが実行されていない、または `secretAccessor` 権限が不足しています。
 
 **解決策**: Firebase CLI コマンドを実行してください：
 
@@ -163,6 +187,8 @@ firebase apphosting:secrets:grantaccess BACKEND_API_BASE_STAGING \
   --location asia-east1 \
   --project ledger-muse
 ```
+
+このコマンドは `secretAccessor` 権限を含む必要な全権限を設定します。
 
 ### エラー: "Secret not found"
 
@@ -208,15 +234,19 @@ Terraform は自動的に新しい Secret バージョンを作成します。Fi
 
 5. **定期的な監査**: IAM ポリシーを定期的にレビュー
 
-## なぜ Terraform だけでは不十分だったのか？
+## なぜ Firebase CLI を使用するのか？
 
-Firebase App Hosting は以下の特殊な権限構成を必要とします：
+Firebase App Hosting のシークレット権限設定には以下の理由でFirebase CLIの使用が推奨されます：
 
-1. **Service Agent への secretVersionManager**: Google管理のService Agentに対してTerraformで直接権限付与することは推奨されません
-2. **複数レベルの権限**: シークレットレベルとプロジェクトレベルの組み合わせが必要
-3. **内部的な権限設定**: Firebase CLI は App Hosting の内部アーキテクチャに最適化された権限を設定します
+1. **Google管理のService Agent**: `service-PROJECT_NUMBER@gcp-sa-firebaseapphosting` はGoogle管理のサービスアカウントで、Terraformで直接管理することは推奨されません
 
-Firebase CLI の `apphosting:secrets:grantaccess` コマンドは、これらの複雑な権限設定を自動的に正しく構成してくれます。
+2. **複数の権限の組み合わせ**: 3つの異なる権限（`secretAccessor`, `viewer`, `secretVersionManager`）を正確に設定する必要があります
+
+3. **自動的な権限検証**: Firebase CLIはApp Hostingに必要な最小限かつ十分な権限を自動的に設定します
+
+4. **メンテナンス性**: Firebase App Hostingの権限要件が変更された場合、Firebase CLIが自動的に対応します
+
+Firebase CLI の `apphosting:secrets:grantaccess` コマンドは、これらの複雑な権限設定を1回のコマンドで正しく構成してくれます。
 
 ## 関連ドキュメント
 

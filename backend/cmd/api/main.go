@@ -116,6 +116,9 @@ func newServer(healthService *apphealth.Service, authVerifier adapterhttp.TokenV
 
 func buildAuthVerifier(ctx context.Context) (adapterhttp.TokenVerifier, error) {
 	projectID := os.Getenv("FIREBASE_PROJECT_ID")
+	if projectID == "" {
+		return nil, fmt.Errorf("FIREBASE_PROJECT_ID environment variable must be set")
+	}
 	app, err := firebaseapp.NewApp(ctx, projectID)
 	if err != nil {
 		return nil, err

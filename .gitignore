@@ -13,7 +13,6 @@ pnpm-debug.log*
 *.tsbuildinfo
 .env
 .env.*
-!frontend/.env.local
 !frontend/.env.*.example
 backend/.env
 backend/.env.*

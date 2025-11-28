@@ -18,7 +18,7 @@ type stubVerifier struct {
 	err   error
 }
 
-func (s *stubVerifier) VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error) {
+func (s *stubVerifier) VerifyIDToken(_ context.Context, idToken string) (*auth.Token, error) {
 	return s.token, s.err
 }
 

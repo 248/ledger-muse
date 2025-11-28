@@ -14,7 +14,7 @@ import (
 
 type noopVerifier struct{}
 
-func (noopVerifier) VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error) {
+func (noopVerifier) VerifyIDToken(_ context.Context, _ string) (*auth.Token, error) {
 	return &auth.Token{}, nil
 }
 

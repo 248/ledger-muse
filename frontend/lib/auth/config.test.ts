@@ -17,7 +17,7 @@ describe("authConfig.callbacks.authorized", () => {
     const authorized = authConfig.callbacks?.authorized;
     const result = authorized?.({
       auth: null,
-      request: new Request("https://example.com/dashboard"),
+      request: new Request("https://example.com/dashboard") as any,
     });
 
     expect(result).toBe(false);
@@ -26,8 +26,8 @@ describe("authConfig.callbacks.authorized", () => {
   it("allows access to protected routes when authenticated", () => {
     const authorized = authConfig.callbacks?.authorized;
     const result = authorized?.({
-      auth: { user: { id: "user-1" } },
-      request: new Request("https://example.com/dashboard"),
+      auth: { user: { id: "user-1" }, expires: "" } as any,
+      request: new Request("https://example.com/dashboard") as any,
     });
 
     expect(result).toBe(true);
@@ -37,7 +37,7 @@ describe("authConfig.callbacks.authorized", () => {
     const authorized = authConfig.callbacks?.authorized;
     const result = authorized?.({
       auth: null,
-      request: new Request("https://example.com/login"),
+      request: new Request("https://example.com/login") as any,
     });
 
     expect(result).toBe(true);
@@ -50,6 +50,7 @@ describe("authConfig.callbacks.jwt", () => {
 
     const token = await jwtCallback?.({
       token: {},
+      user: { id: "test-user", email: "test@example.com" } as any,
       account: {
         access_token: "access-token",
         refresh_token: "refresh-token",
@@ -94,7 +95,8 @@ describe("authConfig.callbacks.session", () => {
     const session = await sessionCallback?.({
       session: {
         user: { name: "Test User", email: "user@example.com" },
-      },
+        expires: "",
+      } as any,
       token: { sub: "user-1", accessToken: "abc123" } as never,
     });
 

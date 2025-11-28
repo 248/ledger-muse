@@ -39,6 +39,7 @@ export const authConfig: NextAuthConfig = {
           accessToken: account.access_token,
           refreshToken: account.refresh_token ?? typedToken.refreshToken,
           expiresAt: account.expires_at,
+          idToken: account.id_token,
         };
       }
 
@@ -64,6 +65,11 @@ export const authConfig: NextAuthConfig = {
       if (typedToken.accessToken) {
         (session as typeof session & { accessToken?: string }).accessToken =
           typedToken.accessToken;
+      }
+
+      if (typedToken.idToken) {
+        (session as typeof session & { idToken?: string }).idToken =
+          typedToken.idToken;
       }
 
       return session;

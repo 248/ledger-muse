@@ -1,17 +1,25 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	apphealth "github.com/ledger-muse/backend/internal/application/health"
 
+	"firebase.google.com/go/v4/auth"
 	"github.com/labstack/echo/v4"
 )
 
+type noopVerifier struct{}
+
+func (noopVerifier) VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error) {
+	return &auth.Token{}, nil
+}
+
 func TestCORSPreflightAllowsAllOrigins(t *testing.T) {
-	e := newServer(apphealth.NewService("test"))
+	e := newServer(apphealth.NewService("test"), noopVerifier{})
 
 	req := httptest.NewRequest(http.MethodOptions, "/health", nil)
 	req.Header.Set("Origin", "http://example.com")
@@ -33,7 +41,7 @@ func TestCORSPreflightAllowsAllOrigins(t *testing.T) {
 }
 
 func TestHTTPErrorHandlerReturnsJSON(t *testing.T) {
-	e := newServer(apphealth.NewService("test"))
+	e := newServer(apphealth.NewService("test"), noopVerifier{})
 
 	e.GET("/boom", func(_ echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "bad request")

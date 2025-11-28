@@ -32,6 +32,32 @@ npm run dev
 ```
 - ログイン成功後は `/dashboard` にリダイレクトされ、ユーザー名とメールが表示されます。
 
+## 4. Backend `/api/v1/me` のローカル確認
+NextAuth から取得した ID トークンを Echo 側で検証します。エミュレーター利用時は認証レスポンスが匿名になるため、実トークンでの疎通確認は Identity Platform / Firebase Auth 本番プロジェクトを想定してください（学習用にはエミュレーターで 200 応答までを確認）。
+
+### 環境変数
+`backend/.env` を用意し、少なくとも以下を設定:
+```
+PORT=8080
+GO_ENV=local
+FIREBASE_PROJECT_ID=demo-no-project        # プロジェクトID
+FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 # エミュレーターを使う場合
+```
+※ 実トークンを検証する場合は `FIREBASE_AUTH_EMULATOR_HOST` を空にし、適切なサービスアカウント認証を別途設定してください。
+
+### 起動と疎通
+```bash
+cd backend
+go run ./cmd/api
+# または air 等のホットリロードで起動
+```
+
+NextAuth 側でサインイン後、ブラウザのネットワークタブや curl で:
+```bash
+curl -H "Authorization: Bearer <id_token>" http://localhost:8080/api/v1/me
+```
+期待値: `{"userId":"...","email":"..."}` が返却され、無効トークンやヘッダー欠落時は 401 となる。
+
 ## 4. よくあるハマりどころ
 - リダイレクト URI 未設定: Google で `redirect_uri_mismatch` が出る。上記 URI を追加して再試行。
 - シークレット未設定: 500 エラーになる。`.env.local` を再確認。

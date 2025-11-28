@@ -36,7 +36,7 @@ Staging 環境の `main.tf` には既に `google_project_service.secretmanager` 
 backend_api_url = "https://ledger-muse-api-staging-912371481714.asia-northeast1.run.app"
 
 # Note: Service account permissions are managed by Firebase CLI
-# Run: firebase apphosting:secrets:grantaccess BACKEND_API_BASE_STAGING --backend staging --location asia-east1
+# Run: firebase apphosting:secrets:grantaccess BACKEND_API_BASE_STAGING --backend staging --location asia-east1 --project <PROJECT_ID>
 ```
 
 **注意**:
@@ -89,7 +89,7 @@ gcloud secrets get-iam-policy BACKEND_API_BASE_STAGING
 firebase apphosting:secrets:grantaccess BACKEND_API_BASE_STAGING \
   --backend staging \
   --location asia-east1 \
-  --project ledger-muse
+  --project <PROJECT_ID>
 ```
 
 このコマンドは以下を自動的に設定します：
@@ -185,7 +185,7 @@ Permission 'secretmanager.versions.access' denied for resource
 firebase apphosting:secrets:grantaccess BACKEND_API_BASE_STAGING \
   --backend staging \
   --location asia-east1 \
-  --project ledger-muse
+  --project <PROJECT_ID>
 ```
 
 このコマンドは `secretAccessor` 権限を含む必要な全権限を設定します。

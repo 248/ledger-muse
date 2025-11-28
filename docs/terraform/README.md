@@ -84,7 +84,7 @@
        - `cp terraform/environments/staging/secret-manager.auto.tfvars.example terraform/environments/staging/secret-manager.auto.tfvars` を作成
        - `backend_api_url` に Cloud Run の URL を設定
        - `terraform -chdir=terraform/environments/staging apply -var-file=../../common.auto.tfvars -var-file=secret-manager.auto.tfvars` でシークレット作成
-       - Firebase CLI で IAM 権限を設定: `firebase apphosting:secrets:grantaccess BACKEND_API_BASE_STAGING --backend staging --location asia-east1 --project ledger-muse`
+       - Firebase CLI で IAM 権限を設定: `firebase apphosting:secrets:grantaccess BACKEND_API_BASE_STAGING --backend staging --location asia-east1 --project <PROJECT_ID>`
     4. **重要**: IAM権限はTerraformではなくFirebase CLIで管理します
   - モジュールを追加したらこのガイドに用途と順序を追記する
 

@@ -106,4 +106,4 @@ variable "backend_api_url_secret_id" {
 }
 
 # Note: Service account permissions are managed by Firebase CLI
-# Run: firebase apphosting:secrets:grantaccess BACKEND_API_BASE_STAGING --backend staging --location asia-east1
+# Run: firebase apphosting:secrets:grantaccess BACKEND_API_BASE_STAGING --backend staging --location asia-east1 --project <PROJECT_ID>

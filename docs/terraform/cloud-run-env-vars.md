@@ -80,7 +80,6 @@ module "backend_api_cloud_run" {
   # 環境変数を追加
   env_vars = {
     FIREBASE_PROJECT_ID = var.project_id
-    PORT                = "8080"
   }
 
   min_instances = var.backend_api_cloud_run_min_instances
@@ -119,7 +118,7 @@ PR Preview環境では、GitHub Actionsワークフローで環境変数を直�
       --platform managed \
       --allow-unauthenticated \
       --service-account "${{ env.STAGING_SERVICE_ACCOUNT }}@$PROJECT_ID.iam.gserviceaccount.com" \
-      --set-env-vars "ENV=preview,FIREBASE_PROJECT_ID=$PROJECT_ID,PORT=8080" \
+      --set-env-vars "ENV=preview,FIREBASE_PROJECT_ID=$PROJECT_ID" \
       --memory "$CLOUD_RUN_MEMORY" \
       --cpu "$CLOUD_RUN_CPU" \
       --timeout "$CLOUD_RUN_TIMEOUT" \
@@ -145,7 +144,6 @@ PR Preview環境では、GitHub Actionsワークフローで環境変数を直�
 ```hcl
 backend_api_cloud_run_env_vars = {
   FIREBASE_PROJECT_ID = "ledger-muse-478602"
-  PORT                = "8080"
   LOG_LEVEL           = "info"
 }
 ```
@@ -184,7 +182,7 @@ terraform apply -var-file=../../common.auto.tfvars -var-file=cloud-run.auto.tfva
 |--------|------|-----|
 | `ENV` | 環境識別子 | `staging`, `production`, `preview` |
 | `FIREBASE_PROJECT_ID` | Firebase/GCPプロジェクトID | `ledger-muse-478602` |
-| `PORT` | アプリケーションのリスニングポート | `8080` |
+| `PORT` | **※予約済み - Cloud Runが自動設定** | `8080`（読み取り専用） |
 | `LOG_LEVEL` | ログレベル | `debug`, `info`, `warn`, `error` |
 | `GCP_PROJECT` | GCPプロジェクトID（SDKで自動認識） | `ledger-muse-478602` |
 
@@ -227,7 +225,7 @@ env {
 
 **原因**:
 - `FIREBASE_PROJECT_ID` などの必須環境変数が未設定
-- `PORT` 環境変数とアプリケーションのリスニングポートが不一致
+- `PORT` は予約済み環境変数のため手動設定不可（Cloud Runが自動設定）
 
 **解決策**:
 1. `.github/workflows/ci.yml` で `--set-env-vars` を確認

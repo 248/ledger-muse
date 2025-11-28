@@ -20,6 +20,13 @@ const config: PlaywrightTestConfig = {
       NEXT_PUBLIC_BACKEND_API_BASE:
         process.env.NEXT_PUBLIC_BACKEND_API_BASE ??
         "http://localhost:8080",
+      AUTH_SECRET: process.env.AUTH_SECRET ?? "test-auth-secret",
+      AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID ?? "test-google-id",
+      AUTH_GOOGLE_SECRET:
+        process.env.AUTH_GOOGLE_SECRET ?? "test-google-secret",
+      AUTH_GOOGLE_ISSUER:
+        process.env.AUTH_GOOGLE_ISSUER ?? "https://accounts.google.com",
+      NEXTAUTH_URL: baseURL,
     },
   },
 };

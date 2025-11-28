@@ -79,6 +79,12 @@ export default function HomePage() {
           >
             概要を見る
           </Link>
+          <Link
+            href="/login"
+            className="text-sm font-semibold text-sky-800 underline-offset-4 transition hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700"
+          >
+            ログインへ
+          </Link>
         </div>
       </section>
 
